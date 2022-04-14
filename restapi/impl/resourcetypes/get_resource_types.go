@@ -13,6 +13,8 @@ import (
 func buildResourceTypesGetResponse(
 	db *sql.DB, schema string, params resource_types.GetResourceTypesParams,
 ) (*models.ResourceTypesOut, error) {
+	ctx := params.HTTPRequest.Context()
+
 	resourceTypeName := params.ResourceTypeName
 
 	// Start a transaction for the request.
@@ -22,7 +24,7 @@ func buildResourceTypesGetResponse(
 	}
 	defer tx.Commit() // nolint:errcheck
 
-	_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+	_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 	if err != nil {
 		return nil, err
 	}

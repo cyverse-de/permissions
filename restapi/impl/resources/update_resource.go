@@ -17,6 +17,7 @@ func BuildUpdateResourceHandler(db *sql.DB, schema string) func(resources.Update
 
 	// Return the handler function.
 	return func(params resources.UpdateResourceParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		resourceUpdate := params.ResourceUpdate
 
 		// Start a transaction for this request.
@@ -29,7 +30,7 @@ func BuildUpdateResourceHandler(db *sql.DB, schema string) func(resources.Update
 			)
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			reason := err.Error()

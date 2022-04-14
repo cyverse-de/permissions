@@ -15,6 +15,7 @@ func BuildResourceTypesIDPutHandler(db *sql.DB, schema string) func(resource_typ
 
 	// Return the handler function.
 	return func(params resource_types.PutResourceTypesIDParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		resourceTypeIn := params.ResourceTypeIn
 
 		// Start a transaction for this request.
@@ -26,7 +27,7 @@ func BuildResourceTypesIDPutHandler(db *sql.DB, schema string) func(resource_typ
 			)
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			reason := err.Error()
 			return resource_types.NewPutResourceTypesIDInternalServerError().WithPayload(

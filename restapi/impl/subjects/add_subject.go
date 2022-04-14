@@ -30,7 +30,7 @@ func BuildAddSubjectHandler(db *sql.DB, schema string) func(subjects.AddSubjectP
 			)
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			reason := err.Error()

@@ -15,6 +15,8 @@ func BuildResourceTypesPostHandler(db *sql.DB, schema string) func(resource_type
 
 	// Return the handler function.
 	return func(params resource_types.PostResourceTypesParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
+
 		resourceTypeIn := params.ResourceTypeIn
 
 		// Start a transaction for this request.
@@ -26,7 +28,7 @@ func BuildResourceTypesPostHandler(db *sql.DB, schema string) func(resource_type
 			)
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			reason := err.Error()
 			return resource_types.NewPostResourceTypesInternalServerError().WithPayload(

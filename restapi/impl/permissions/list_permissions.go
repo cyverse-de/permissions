@@ -25,7 +25,8 @@ func BuildListPermissionsHandler(
 ) func(permissions.ListPermissionsParams) middleware.Responder {
 
 	// Return the handler function.
-	return func(permissions.ListPermissionsParams) middleware.Responder {
+	return func(params permissions.ListPermissionsParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 
 		// Start a transaction for this request.
 		tx, err := db.Begin()
@@ -35,7 +36,7 @@ func BuildListPermissionsHandler(
 		}
 		defer tx.Commit() // nolint:errcheck
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			return internalServerError(err.Error())

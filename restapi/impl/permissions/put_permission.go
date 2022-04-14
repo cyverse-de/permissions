@@ -47,7 +47,7 @@ func BuildPutPermissionHandler(
 			return putPermissionInternalServerError(err.Error())
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			return putPermissionInternalServerError(err.Error())

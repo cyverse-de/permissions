@@ -49,7 +49,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 			return copyPermissionsInternalServerError(err.Error())
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			return copyPermissionsInternalServerError(err.Error())

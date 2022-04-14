@@ -17,6 +17,7 @@ func BuildListResourcesHandler(db *sql.DB, schema string) func(resources.ListRes
 
 	// Return the handler function.
 	return func(params resources.ListResourcesParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 
 		// Start a transaction for this request.
 		tx, err := db.Begin()
@@ -29,7 +30,7 @@ func BuildListResourcesHandler(db *sql.DB, schema string) func(resources.ListRes
 		}
 		defer tx.Commit() // nolint:errcheck
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			reason := err.Error()

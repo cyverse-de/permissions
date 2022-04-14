@@ -38,7 +38,7 @@ func BuildRevokePermissionHandler(db *sql.DB, schema string) func(permissions.Re
 			return revokePermissionInternalServerError(err.Error())
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			return revokePermissionInternalServerError(err.Error())

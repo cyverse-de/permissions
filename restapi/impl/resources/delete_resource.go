@@ -17,6 +17,7 @@ func BuildDeleteResourceHandler(db *sql.DB, schema string) func(resources.Delete
 
 	// Return the handler function.
 	return func(params resources.DeleteResourceParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 
 		// Start a transaction for this request.
 		tx, err := db.Begin()
@@ -28,7 +29,7 @@ func BuildDeleteResourceHandler(db *sql.DB, schema string) func(resources.Delete
 			)
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			reason := err.Error()
