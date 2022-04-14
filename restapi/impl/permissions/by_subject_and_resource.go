@@ -38,6 +38,7 @@ func BuildBySubjectAndResourceHandler(
 
 	// Return the handler function.
 	return func(params permissions.BySubjectAndResourceParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		subjectType := params.SubjectType
 		subjectID := params.SubjectID
 		resourceTypeName := params.ResourceType
@@ -52,14 +53,14 @@ func BuildBySubjectAndResourceHandler(
 			return bySubjectAndResourceInternalServerError(err.Error())
 		}
 
-		_, err = tx.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
 			logger.Log.Error(err)
 			return bySubjectAndResourceInternalServerError(err.Error())
 		}
 
 		// Verify that the subject type is correct.
-		subject, err := permsdb.GetSubjectByExternalID(tx, models.ExternalSubjectID(subjectID))
+		subject, err := permsdb.GetSubjectByExternalID(ctx, tx, models.ExternalSubjectID(subjectID))
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

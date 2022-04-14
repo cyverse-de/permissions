@@ -39,6 +39,7 @@ func BuildBySubjectAndResourceTypeHandler(
 
 	// Return the handler function.
 	return func(params permissions.BySubjectAndResourceTypeParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		subjectType := params.SubjectType
 		subjectID := params.SubjectID
 		resourceTypeName := params.ResourceType
@@ -59,7 +60,7 @@ func BuildBySubjectAndResourceTypeHandler(
 		}
 
 		// Verify that the subject type is correct.
-		subject, err := permsdb.GetSubjectByExternalID(tx, models.ExternalSubjectID(subjectID))
+		subject, err := permsdb.GetSubjectByExternalID(ctx, tx, models.ExternalSubjectID(subjectID))
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

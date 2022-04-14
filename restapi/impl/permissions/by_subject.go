@@ -38,6 +38,7 @@ func BuildBySubjectHandler(
 
 	// Return the handler function.
 	return func(params permissions.BySubjectParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		subjectType := params.SubjectType
 		subjectID := params.SubjectID
 		lookup := extractLookupFlag(params.Lookup)
@@ -57,7 +58,7 @@ func BuildBySubjectHandler(
 		}
 
 		// Verify that the subject type is correct.
-		subject, err := permsdb.GetSubjectByExternalID(tx, models.ExternalSubjectID(subjectID))
+		subject, err := permsdb.GetSubjectByExternalID(ctx, tx, models.ExternalSubjectID(subjectID))
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

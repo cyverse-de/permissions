@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -19,13 +20,14 @@ type ErrorResponseFns struct {
 }
 
 func getOrAddSubject(
+	ctx context.Context,
 	tx *sql.Tx,
 	subjectIn *models.SubjectIn,
 	erf *ErrorResponseFns,
 ) (*models.SubjectOut, middleware.Responder) {
 
 	// Attempt to look up the subject.
-	subject, err := permsdb.GetSubject(tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
+	subject, err := permsdb.GetSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())
@@ -35,7 +37,7 @@ func getOrAddSubject(
 	}
 
 	// Make sure that another subject with the same ID doesn't exist already.
-	exists, err := permsdb.SubjectIDExists(tx, *subjectIn.SubjectID)
+	exists, err := permsdb.SubjectIDExists(ctx, tx, *subjectIn.SubjectID)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError((err.Error()))
@@ -46,7 +48,7 @@ func getOrAddSubject(
 	}
 
 	// Attempt to add the subject.
-	subject, err = permsdb.AddSubject(tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
+	subject, err = permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())

@@ -37,6 +37,7 @@ func BuildGrantPermissionHandler(
 
 	// Return the hnadler function.
 	return func(params permissions.GrantPermissionParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		req := params.PermissionGrantRequest
 
 		// Create a transaction for the request.
@@ -53,7 +54,7 @@ func BuildGrantPermissionHandler(
 		}
 
 		// Either get or add the subject.
-		subject, errorResponder := getOrAddSubject(tx, req.Subject, erf)
+		subject, errorResponder := getOrAddSubject(ctx, tx, req.Subject, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder

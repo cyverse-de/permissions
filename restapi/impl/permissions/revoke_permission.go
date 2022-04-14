@@ -29,6 +29,7 @@ func BuildRevokePermissionHandler(db *sql.DB, schema string) func(permissions.Re
 
 	// Return the handler function.
 	return func(params permissions.RevokePermissionParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 
 		// Create a transaction for the request.
 		tx, err := db.Begin()
@@ -68,7 +69,7 @@ func BuildRevokePermissionHandler(db *sql.DB, schema string) func(permissions.Re
 		// Look up the subject.
 		subjectType := models.SubjectType(params.SubjectType)
 		subjectID := models.ExternalSubjectID(params.SubjectID)
-		subject, err := permsdb.GetSubject(tx, subjectID, subjectType)
+		subject, err := permsdb.GetSubject(ctx, tx, subjectID, subjectType)
 		if err != nil {
 			logger.Log.Error(err)
 			return revokePermissionInternalServerError(err.Error())

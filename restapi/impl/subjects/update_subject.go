@@ -17,6 +17,7 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema string) func(subjects.UpdateSu
 
 	// Return the handler function.
 	return func(params subjects.UpdateSubjectParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		id := models.InternalSubjectID(params.ID)
 		subjectIn := params.SubjectIn
 
@@ -40,7 +41,7 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema string) func(subjects.UpdateSu
 		}
 
 		// Verify that the subject exists.
-		exists, err := permsdb.SubjectExists(tx, id)
+		exists, err := permsdb.SubjectExists(ctx, tx, id)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -57,7 +58,7 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema string) func(subjects.UpdateSu
 		}
 
 		// Verify that a subject with the same external subject ID doesn't exist.
-		duplicateExists, err := permsdb.DuplicateSubjectExists(tx, id, *subjectIn.SubjectID)
+		duplicateExists, err := permsdb.DuplicateSubjectExists(ctx, tx, id, *subjectIn.SubjectID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -74,7 +75,7 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema string) func(subjects.UpdateSu
 		}
 
 		// Update the subject.
-		subjectOut, err := permsdb.UpdateSubject(tx, id, *subjectIn.SubjectID, *subjectIn.SubjectType)
+		subjectOut, err := permsdb.UpdateSubject(ctx, tx, id, *subjectIn.SubjectID, *subjectIn.SubjectType)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

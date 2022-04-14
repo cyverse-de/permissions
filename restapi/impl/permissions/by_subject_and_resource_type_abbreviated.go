@@ -36,6 +36,7 @@ func BuildBySubjectAndResourceTypeAbbreviatedHandler(
 
 	// Return the handler function.
 	return func(params permissions.BySubjectAndResourceTypeAbbreviatedParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		subjectType := params.SubjectType
 		subjectID := params.SubjectID
 		resourceTypeName := params.ResourceType
@@ -57,7 +58,7 @@ func BuildBySubjectAndResourceTypeAbbreviatedHandler(
 		}
 
 		// Verify that the subject type is correct.
-		subject, err := permsdb.GetSubjectByExternalID(tx, models.ExternalSubjectID(subjectID))
+		subject, err := permsdb.GetSubjectByExternalID(ctx, tx, models.ExternalSubjectID(subjectID))
 		if err != nil {
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeAbbreviatedInternalServerError(err.Error())

@@ -37,6 +37,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 
 	// Return the handler function.
 	return func(params permissions.CopyPermissionsParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		sourceType := models.SubjectType(params.SubjectType)
 		sourceID := models.ExternalSubjectID(params.SubjectID)
 		destSubjects := params.DestSubjects.Subjects
@@ -55,7 +56,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 		}
 
 		// Either get or add the source subject.
-		source, errorResponse := getOrAddSubject(tx, &models.SubjectIn{SubjectType: &sourceType, SubjectID: &sourceID}, erf)
+		source, errorResponse := getOrAddSubject(ctx, tx, &models.SubjectIn{SubjectType: &sourceType, SubjectID: &sourceID}, erf)
 		if errorResponse != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponse
@@ -65,7 +66,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 		for _, destIn := range destSubjects {
 
 			// Either get or add the subject.
-			dest, errorResponse := getOrAddSubject(tx, destIn, erf)
+			dest, errorResponse := getOrAddSubject(ctx, tx, destIn, erf)
 			if errorResponse != nil {
 				tx.Rollback() // nolint:errcheck
 				return errorResponse

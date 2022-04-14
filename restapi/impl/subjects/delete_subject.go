@@ -17,6 +17,7 @@ func BuildDeleteSubjectHandler(db *sql.DB, schema string) func(subjects.DeleteSu
 
 	// Return the handler function.
 	return func(params subjects.DeleteSubjectParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		id := models.InternalSubjectID(params.ID)
 
 		// Start a transaction for this request.
@@ -39,7 +40,7 @@ func BuildDeleteSubjectHandler(db *sql.DB, schema string) func(subjects.DeleteSu
 		}
 
 		// Verify that the subject exists.
-		exists, err := permsdb.SubjectExists(tx, id)
+		exists, err := permsdb.SubjectExists(ctx, tx, id)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -57,7 +58,7 @@ func BuildDeleteSubjectHandler(db *sql.DB, schema string) func(subjects.DeleteSu
 		}
 
 		// Delete the subject.
-		if err := permsdb.DeleteSubject(tx, id); err != nil {
+		if err := permsdb.DeleteSubject(ctx, tx, id); err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()

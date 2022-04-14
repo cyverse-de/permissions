@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -44,6 +45,7 @@ func rowsToSubject(rows *sql.Rows, duplicateErr error) (*models.SubjectOut, erro
 
 // AddSubject adds a subject to the database.
 func AddSubject(
+	ctx context.Context,
 	tx *sql.Tx,
 	subjectID models.ExternalSubjectID,
 	subjectType models.SubjectType,
@@ -52,7 +54,7 @@ func AddSubject(
 	// Update the database.
 	query := `INSERT INTO subjects (subject_id, subject_type) VALUES ($1, $2)
             RETURNING id, subject_id, subject_type`
-	row := tx.QueryRow(query, string(subjectID), string(subjectType))
+	row := tx.QueryRowContext(ctx, query, string(subjectID), string(subjectType))
 
 	// Return the subject information.
 	var subjectDto SubjectDTO
@@ -64,6 +66,7 @@ func AddSubject(
 
 // UpdateSubject updates a subject in the database.
 func UpdateSubject(
+	ctx context.Context,
 	tx *sql.Tx,
 	id models.InternalSubjectID,
 	subjectID models.ExternalSubjectID,
@@ -74,7 +77,7 @@ func UpdateSubject(
 	query := `UPDATE subjects SET subject_id = $1, subject_type = $2
             WHERE id = $3
             RETURNING id, subject_id, subject_type`
-	row := tx.QueryRow(query, string(subjectID), string(subjectType), string(id))
+	row := tx.QueryRowContext(ctx, query, string(subjectID), string(subjectType), string(id))
 
 	// Return the subject information.
 	var subjectDto SubjectDTO
@@ -85,11 +88,11 @@ func UpdateSubject(
 }
 
 // SubjectIDExists determines whether or not the subject with the given external ID exists in the database.
-func SubjectIDExists(tx *sql.Tx, subjectID models.ExternalSubjectID) (bool, error) {
+func SubjectIDExists(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID) (bool, error) {
 
 	// Query the database.
 	query := "SELECT count(*) FROM subjects WHERE subject_id = $1"
-	row := tx.QueryRow(query, string(subjectID))
+	row := tx.QueryRowContext(ctx, query, string(subjectID))
 
 	// Get the result.
 	var count uint32
@@ -100,11 +103,11 @@ func SubjectIDExists(tx *sql.Tx, subjectID models.ExternalSubjectID) (bool, erro
 }
 
 // SubjectExists determines whether or not the subject with the given internal ID exists in the database.
-func SubjectExists(tx *sql.Tx, id models.InternalSubjectID) (bool, error) {
+func SubjectExists(ctx context.Context, tx *sql.Tx, id models.InternalSubjectID) (bool, error) {
 
 	// Query the database.
 	query := "SELECT count(*) FROM subjects WHERE id = $1"
-	row := tx.QueryRow(query, string(id))
+	row := tx.QueryRowContext(ctx, query, string(id))
 
 	// Get the result.
 	var count uint32
@@ -117,6 +120,7 @@ func SubjectExists(tx *sql.Tx, id models.InternalSubjectID) (bool, error) {
 // DuplicateSubjectExists determines whether or not a subject with the same external subject ID and a different
 // internal subject ID exists.
 func DuplicateSubjectExists(
+	ctx context.Context,
 	tx *sql.Tx,
 	id models.InternalSubjectID,
 	subjectID models.ExternalSubjectID,
@@ -124,7 +128,7 @@ func DuplicateSubjectExists(
 
 	// Query the database.
 	query := "SELECT count(*) FROM subjects WHERE id != $1 and subject_id = $2"
-	row := tx.QueryRow(query, string(id), string(subjectID))
+	row := tx.QueryRowContext(ctx, query, string(id), string(subjectID))
 
 	// Get the result.
 	var count uint32
@@ -135,7 +139,7 @@ func DuplicateSubjectExists(
 }
 
 // ListSubjects lists subjects in the database, optionally filtering by subject type and external subject ID
-func ListSubjects(tx *sql.Tx, subjectType, subjectID *string) ([]*models.SubjectOut, error) {
+func ListSubjects(ctx context.Context, tx *sql.Tx, subjectType, subjectID *string) ([]*models.SubjectOut, error) {
 
 	// Query the database.
 	var rows *sql.Rows
@@ -144,21 +148,21 @@ func ListSubjects(tx *sql.Tx, subjectType, subjectID *string) ([]*models.Subject
 		query := `SELECT id, subject_id, subject_type FROM subjects
 		          WHERE subject_type = $1 AND subject_id = $2
 		          ORDER BY subject_type, subject_id`
-		rows, err = tx.Query(query, *subjectType, *subjectID)
+		rows, err = tx.QueryContext(ctx, query, *subjectType, *subjectID)
 	} else if subjectType != nil {
 		query := `SELECT id, subject_id, subject_type FROM subjects
 		          WHERE subject_type = $1
 		          ORDER BY subject_type, subject_id`
-		rows, err = tx.Query(query, *subjectType)
+		rows, err = tx.QueryContext(ctx, query, *subjectType)
 	} else if subjectID != nil {
 		query := `SELECT id, subject_id, subject_type FROM subjects
 		          WHERE subject_id = $1
 		          ORDER BY subject_type, subject_id`
-		rows, err = tx.Query(query, *subjectID)
+		rows, err = tx.QueryContext(ctx, query, *subjectID)
 	} else {
 		query := `SELECT id, subject_id, subject_type FROM subjects
 		          ORDER BY subject_type, subject_id`
-		rows, err = tx.Query(query)
+		rows, err = tx.QueryContext(ctx, query)
 	}
 	if err != nil {
 		return nil, err
@@ -170,11 +174,11 @@ func ListSubjects(tx *sql.Tx, subjectType, subjectID *string) ([]*models.Subject
 }
 
 // DeleteSubject removes a subject from the database.
-func DeleteSubject(tx *sql.Tx, id models.InternalSubjectID) error {
+func DeleteSubject(ctx context.Context, tx *sql.Tx, id models.InternalSubjectID) error {
 
 	// Update the database.
 	stmt := "DELETE FROM subjects WHERE id = $1"
-	result, err := tx.Exec(stmt, string(id))
+	result, err := tx.ExecContext(ctx, stmt, string(id))
 	if err != nil {
 		return err
 	}
@@ -196,6 +200,7 @@ func DeleteSubject(tx *sql.Tx, id models.InternalSubjectID) error {
 
 // GetSubject obtains information about the subject with the given external ID and subject type.
 func GetSubject(
+	ctx context.Context,
 	tx *sql.Tx,
 	subjectID models.ExternalSubjectID,
 	subjectType models.SubjectType,
@@ -204,7 +209,7 @@ func GetSubject(
 	// Get the subject information from the database.
 	query := `SELECT id, subject_id, subject_type FROM subjects
             WHERE subject_id = $1 AND subject_type = $2`
-	rows, err := tx.Query(query, string(subjectID), string(subjectType))
+	rows, err := tx.QueryContext(ctx, query, string(subjectID), string(subjectType))
 	if err != nil {
 		return nil, err
 	}
@@ -218,11 +223,11 @@ func GetSubject(
 }
 
 // GetSubjectByExternalID returns information about the subjects with the given external ID.
-func GetSubjectByExternalID(tx *sql.Tx, subjectID models.ExternalSubjectID) (*models.SubjectOut, error) {
+func GetSubjectByExternalID(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID) (*models.SubjectOut, error) {
 
 	// Get the subject information from the database.
 	query := "SELECT id, subject_id, subject_type FROM subjects WHERE subject_id = $1"
-	rows, err := tx.Query(query, string(subjectID))
+	rows, err := tx.QueryContext(ctx, query, string(subjectID))
 	if err != nil {
 		return nil, err
 	}

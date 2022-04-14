@@ -23,6 +23,7 @@ func BuildListSubjectsHandler(db *sql.DB, schema string) func(subjects.ListSubje
 
 	// Return the handler function.
 	return func(params subjects.ListSubjectsParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 
 		// Start a transaction for the request.
 		tx, err := db.Begin()
@@ -38,7 +39,7 @@ func BuildListSubjectsHandler(db *sql.DB, schema string) func(subjects.ListSubje
 		}
 
 		// Obtain the list of subjects.
-		result, err := permsdb.ListSubjects(tx, params.SubjectType, params.SubjectID)
+		result, err := permsdb.ListSubjects(ctx, tx, params.SubjectType, params.SubjectID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

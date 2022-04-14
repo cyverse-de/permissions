@@ -37,6 +37,7 @@ func BuildPutPermissionHandler(
 
 	// Return the handler function.
 	return func(params permissions.PutPermissionParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		req := params.Permission
 
 		// Create a transaction for the request.
@@ -59,7 +60,7 @@ func BuildPutPermissionHandler(
 			SubjectID:   &subjectID,
 			SubjectType: &subjectType,
 		}
-		subject, errorResponder := getOrAddSubject(tx, subjectIn, erf)
+		subject, errorResponder := getOrAddSubject(ctx, tx, subjectIn, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder

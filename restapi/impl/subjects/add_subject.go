@@ -17,6 +17,7 @@ func BuildAddSubjectHandler(db *sql.DB, schema string) func(subjects.AddSubjectP
 
 	// Return the handler function.
 	return func(params subjects.AddSubjectParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		subjectIn := params.SubjectIn
 
 		// Start a transaction for this request.
@@ -39,7 +40,7 @@ func BuildAddSubjectHandler(db *sql.DB, schema string) func(subjects.AddSubjectP
 		}
 
 		// Make sure that a subject with the same ID doesn't exist already.
-		exists, err := permsdb.SubjectIDExists(tx, *subjectIn.SubjectID)
+		exists, err := permsdb.SubjectIDExists(ctx, tx, *subjectIn.SubjectID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -57,7 +58,7 @@ func BuildAddSubjectHandler(db *sql.DB, schema string) func(subjects.AddSubjectP
 		}
 
 		// Add the subject.
-		subjectOut, err := permsdb.AddSubject(tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
+		subjectOut, err := permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

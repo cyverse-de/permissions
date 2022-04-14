@@ -35,6 +35,7 @@ func BuildDeleteSubjectByExternalIDHandler(
 
 	// Return the handler function.
 	return func(params subjects.DeleteSubjectByExternalIDParams) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
 		subjectID := models.ExternalSubjectID(params.SubjectID)
 		subjectType := models.SubjectType(params.SubjectType)
 
@@ -52,7 +53,7 @@ func BuildDeleteSubjectByExternalIDHandler(
 		}
 
 		// Look up the subject.
-		subject, err := permsdb.GetSubject(tx, subjectID, subjectType)
+		subject, err := permsdb.GetSubject(ctx, tx, subjectID, subjectType)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -65,7 +66,7 @@ func BuildDeleteSubjectByExternalIDHandler(
 		}
 
 		// Delete the subject.
-		if err := permsdb.DeleteSubject(tx, *subject.ID); err != nil {
+		if err := permsdb.DeleteSubject(ctx, tx, *subject.ID); err != nil {
 			tx.Rollback() // nolint:errcheck
 			return deleteSubjectByExternalIDInternalServerError(err.Error())
 		}
