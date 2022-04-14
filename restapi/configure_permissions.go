@@ -1,15 +1,19 @@
 package restapi
 
 import (
+	"context"
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/cyverse-de/configurate"
 	"github.com/cyverse-de/dbutil"
+	"github.com/cyverse-de/go-mod/otelutils"
 	"github.com/cyverse-de/version"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	errors "github.com/go-openapi/errors"
 	httpkit "github.com/go-openapi/runtime"
@@ -80,6 +84,8 @@ func validateOptions() error {
 var db *sql.DB
 var grouperClient *grouper.Client
 var schema string
+var tracerCtxCancel func()
+var tracerShutdown func()
 
 // Initialize the service.
 func initService() error {
@@ -93,6 +99,11 @@ func initService() error {
 		err error
 		cfg *viper.Viper
 	)
+
+	var tracerCtx, cancel = context.WithCancel(context.Background())
+	tracerCtxCancel = cancel
+	tracerShutdown = otelutils.TracerProviderFromEnv(tracerCtx, "permissions", func(e error) { log.Fatal(e) })
+
 	if cfg, err = configurate.InitDefaults(options.CfgPath, DefaultConfig); err != nil {
 		return err
 	}
@@ -127,8 +138,10 @@ func initService() error {
 
 // Clean up when the service exits.
 func cleanup() {
+	defer tracerCtxCancel()
 	logger.Log.Info("Closing the database connection.")
 	db.Close()
+	tracerShutdown()
 }
 
 func configureAPI(api *operations.PermissionsAPI) http.Handler {
@@ -269,7 +282,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
-	return handler
+	return otelhttp.NewHandler(handler, "HTTP request")
 }
 
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json
