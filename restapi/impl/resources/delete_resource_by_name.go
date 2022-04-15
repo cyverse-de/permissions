@@ -49,7 +49,7 @@ func BuildDeleteResourceByNameHandler(db *sql.DB, schema string) func(resources.
 		}
 
 		// Look up the resource.
-		resource, err := permsdb.GetResourceByNameAndType(tx, params.ResourceName, params.ResourceTypeName)
+		resource, err := permsdb.GetResourceByNameAndType(ctx, tx, params.ResourceName, params.ResourceTypeName)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -62,7 +62,7 @@ func BuildDeleteResourceByNameHandler(db *sql.DB, schema string) func(resources.
 		}
 
 		// Delete the resource.
-		if err := permsdb.DeleteResource(tx, resource.ID); err != nil {
+		if err := permsdb.DeleteResource(ctx, tx, resource.ID); err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			return deleteResourceByNameInternalServerError(err.Error())

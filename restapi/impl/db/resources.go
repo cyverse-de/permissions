@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -51,11 +52,11 @@ func rowToResource(row *sql.Row) (*models.ResourceOut, error) {
 }
 
 // CountResourcesOfType counts the number of resources of the given type.
-func CountResourcesOfType(tx *sql.Tx, resourceTypeID *string) (int64, error) {
+func CountResourcesOfType(ctx context.Context, tx *sql.Tx, resourceTypeID *string) (int64, error) {
 
 	// Query the database.
 	query := "SELECT count(*) FROM resources WHERE resource_type_id = $1"
-	row := tx.QueryRow(query, resourceTypeID)
+	row := tx.QueryRowContext(ctx, query, resourceTypeID)
 
 	// Return the result.
 	var count int64
@@ -66,11 +67,11 @@ func CountResourcesOfType(tx *sql.Tx, resourceTypeID *string) (int64, error) {
 }
 
 // ResourceExists determines whether or not the resource with the given ID exists.
-func ResourceExists(tx *sql.Tx, id *string) (bool, error) {
+func ResourceExists(ctx context.Context, tx *sql.Tx, id *string) (bool, error) {
 
 	// Query the database.
 	query := "SELECT count(*) FROM resources WHERE id = $1"
-	row := tx.QueryRow(query, id)
+	row := tx.QueryRowContext(ctx, query, id)
 
 	// Get the result.
 	var count uint32
@@ -82,13 +83,13 @@ func ResourceExists(tx *sql.Tx, id *string) (bool, error) {
 
 // GetResourceByName obtains information about all resources with the given name. Multiple resources may have the same
 // name as long as the types are different.
-func GetResourceByName(tx *sql.Tx, name *string, resourceTypeID *string) (*models.ResourceOut, error) {
+func GetResourceByName(ctx context.Context, tx *sql.Tx, name *string, resourceTypeID *string) (*models.ResourceOut, error) {
 
 	// Query the database.
 	query := `SELECT r.id, r.name, t.name AS resource_type
             FROM resources r JOIN resource_types t ON r.resource_type_id = t.id
             WHERE t.id = $1 and r.name = $2`
-	rows, err := tx.Query(query, resourceTypeID, name)
+	rows, err := tx.QueryContext(ctx, query, resourceTypeID, name)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +100,13 @@ func GetResourceByName(tx *sql.Tx, name *string, resourceTypeID *string) (*model
 }
 
 // GetResourceByNameAndType obtains information about the resource with the given name and type.
-func GetResourceByNameAndType(tx *sql.Tx, name, resourceTypeName string) (*models.ResourceOut, error) {
+func GetResourceByNameAndType(ctx context.Context, tx *sql.Tx, name, resourceTypeName string) (*models.ResourceOut, error) {
 
 	// Query the database.
 	query := `SELECT r.id, r.name, t.name AS resource_type
             FROM resources r JOIN resource_types t ON r.resource_type_id = t.id
             WHERE t.name = $1 and r.name = $2`
-	rows, err := tx.Query(query, resourceTypeName, name)
+	rows, err := tx.QueryContext(ctx, query, resourceTypeName, name)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +118,7 @@ func GetResourceByNameAndType(tx *sql.Tx, name, resourceTypeName string) (*model
 }
 
 // GetDuplicateResourceByName obtains information about duplicate resources in the database.
-func GetDuplicateResourceByName(tx *sql.Tx, id *string, name *string) (*models.ResourceOut, error) {
+func GetDuplicateResourceByName(ctx context.Context, tx *sql.Tx, id *string, name *string) (*models.ResourceOut, error) {
 
 	// Query the database.
 	query := `SELECT r.id, r.name, t.name AS resource_type
@@ -125,7 +126,7 @@ func GetDuplicateResourceByName(tx *sql.Tx, id *string, name *string) (*models.R
             WHERE r.id != $1
             AND r.name = $2
             AND r.resource_type_id = (SELECT resource_type_id FROM resources WHERE id = $1)`
-	rows, err := tx.Query(query, id, name)
+	rows, err := tx.QueryContext(ctx, query, id, name)
 	if err != nil {
 		return nil, err
 	}
@@ -136,31 +137,31 @@ func GetDuplicateResourceByName(tx *sql.Tx, id *string, name *string) (*models.R
 }
 
 // AddResource adds a resource to the database.
-func AddResource(tx *sql.Tx, name *string, resourceTypeID *string) (*models.ResourceOut, error) {
+func AddResource(ctx context.Context, tx *sql.Tx, name *string, resourceTypeID *string) (*models.ResourceOut, error) {
 
 	// Update the database.
 	query := `INSERT INTO resources (name, resource_type_id) VALUES ($1, $2)
             RETURNING id, name, (SELECT name FROM resource_types t WHERE t.id = resource_type_id)`
-	row := tx.QueryRow(query, name, resourceTypeID)
+	row := tx.QueryRowContext(ctx, query, name, resourceTypeID)
 
 	// Return the result.
 	return rowToResource(row)
 }
 
 // UpdateResource updates a resource in the database.
-func UpdateResource(tx *sql.Tx, id *string, name *string) (*models.ResourceOut, error) {
+func UpdateResource(ctx context.Context, tx *sql.Tx, id *string, name *string) (*models.ResourceOut, error) {
 
 	// Update the database.
 	query := `UPDATE resources SET name = $1 WHERE id = $2
             RETURNING id, name, (SELECT name FROM resource_types t WHERE t.id = resource_type_id)`
-	row := tx.QueryRow(query, name, id)
+	row := tx.QueryRowContext(ctx, query, name, id)
 
 	// Return the result.
 	return rowToResource(row)
 }
 
 // ListResources lists resources in the database, optionally filtering by resource type and resource name.
-func ListResources(tx *sql.Tx, resourceTypeName, resourceName *string) ([]*models.ResourceOut, error) {
+func ListResources(ctx context.Context, tx *sql.Tx, resourceTypeName, resourceName *string) ([]*models.ResourceOut, error) {
 
 	// Query the database.
 	var rows *sql.Rows
@@ -169,21 +170,21 @@ func ListResources(tx *sql.Tx, resourceTypeName, resourceName *string) ([]*model
 		query := `SELECT r.id, r.name, t.name AS resource_type
               FROM resources r JOIN resource_types t ON r.resource_type_id = t.id
               WHERE t.name = $1 AND r.name = $2`
-		rows, err = tx.Query(query, *resourceTypeName, *resourceName)
+		rows, err = tx.QueryContext(ctx, query, *resourceTypeName, *resourceName)
 	} else if resourceTypeName != nil {
 		query := `SELECT r.id, r.name, t.name AS resource_type
               FROM resources r JOIN resource_types t ON r.resource_type_id = t.id
               WHERE t.name = $1`
-		rows, err = tx.Query(query, *resourceTypeName)
+		rows, err = tx.QueryContext(ctx, query, *resourceTypeName)
 	} else if resourceName != nil {
 		query := `SELECT r.id, r.name, t.name AS resource_type
               FROM resources r JOIN resource_types t ON r.resource_type_id = t.id
               WHERE r.name = $1`
-		rows, err = tx.Query(query, *resourceName)
+		rows, err = tx.QueryContext(ctx, query, *resourceName)
 	} else {
 		query := `SELECT r.id, r.name, t.name AS resource_type
             FROM resources r JOIN resource_types t ON r.resource_type_id = t.id`
-		rows, err = tx.Query(query)
+		rows, err = tx.QueryContext(ctx, query)
 	}
 	if err != nil {
 		return nil, err
@@ -195,11 +196,11 @@ func ListResources(tx *sql.Tx, resourceTypeName, resourceName *string) ([]*model
 }
 
 // DeleteResource removes a resource from the database.
-func DeleteResource(tx *sql.Tx, id *string) error {
+func DeleteResource(ctx context.Context, tx *sql.Tx, id *string) error {
 
 	// Update the database.
 	stmt := "DELETE FROM resources WHERE id = $1"
-	result, err := tx.Exec(stmt, id)
+	result, err := tx.ExecContext(ctx, stmt, id)
 	if err != nil {
 		return err
 	}

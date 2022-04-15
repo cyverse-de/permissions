@@ -75,7 +75,7 @@ func getOrAddResource(
 	}
 
 	// Attempt to look up the resource.
-	resource, err := permsdb.GetResourceByName(tx, resourceIn.Name, resourceType.ID)
+	resource, err := permsdb.GetResourceByName(ctx, tx, resourceIn.Name, resourceType.ID)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())
@@ -85,7 +85,7 @@ func getOrAddResource(
 	}
 
 	// Attempt to add the resource.
-	resource, err = permsdb.AddResource(tx, resourceIn.Name, resourceType.ID)
+	resource, err = permsdb.AddResource(ctx, tx, resourceIn.Name, resourceType.ID)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())

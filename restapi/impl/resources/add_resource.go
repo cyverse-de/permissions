@@ -57,7 +57,7 @@ func BuildAddResourceHandler(db *sql.DB, schema string) func(resources.AddResour
 		}
 
 		// Verify that another resource with the same name doesn't already exist.
-		duplicate, err := permsdb.GetResourceByName(tx, resourceIn.Name, resourceType.ID)
+		duplicate, err := permsdb.GetResourceByName(ctx, tx, resourceIn.Name, resourceType.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -77,7 +77,7 @@ func BuildAddResourceHandler(db *sql.DB, schema string) func(resources.AddResour
 		}
 
 		// Add the resource to the database.
-		resourceOut, err := permsdb.AddResource(tx, resourceIn.Name, resourceType.ID)
+		resourceOut, err := permsdb.AddResource(ctx, tx, resourceIn.Name, resourceType.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

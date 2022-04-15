@@ -40,7 +40,7 @@ func BuildUpdateResourceHandler(db *sql.DB, schema string) func(resources.Update
 		}
 
 		// Verify that the resource exists.
-		exists, err := permsdb.ResourceExists(tx, &params.ID)
+		exists, err := permsdb.ResourceExists(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -58,7 +58,7 @@ func BuildUpdateResourceHandler(db *sql.DB, schema string) func(resources.Update
 		}
 
 		// Verify that another resource with the same name doesn't already exist.
-		duplicate, err := permsdb.GetDuplicateResourceByName(tx, &params.ID, resourceUpdate.Name)
+		duplicate, err := permsdb.GetDuplicateResourceByName(ctx, tx, &params.ID, resourceUpdate.Name)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -76,7 +76,7 @@ func BuildUpdateResourceHandler(db *sql.DB, schema string) func(resources.Update
 		}
 
 		// Update the resource.
-		resourceOut, err := permsdb.UpdateResource(tx, &params.ID, resourceUpdate.Name)
+		resourceOut, err := permsdb.UpdateResource(ctx, tx, &params.ID, resourceUpdate.Name)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

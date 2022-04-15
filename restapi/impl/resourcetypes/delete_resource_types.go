@@ -54,7 +54,7 @@ func BuildResourceTypesIDDeleteHandler(
 		}
 
 		// Verify that the resource type has no resources associated with it.
-		numResources, err := permsdb.CountResourcesOfType(tx, &params.ID)
+		numResources, err := permsdb.CountResourcesOfType(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()

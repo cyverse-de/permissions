@@ -56,7 +56,7 @@ func BuildRevokePermissionHandler(db *sql.DB, schema string) func(permissions.Re
 		}
 
 		// Look up the resource.
-		resource, err := permsdb.GetResourceByName(tx, &params.ResourceName, resourceType.ID)
+		resource, err := permsdb.GetResourceByName(ctx, tx, &params.ResourceName, resourceType.ID)
 		if err != nil {
 			logger.Log.Error(err)
 			return revokePermissionInternalServerError(err.Error())

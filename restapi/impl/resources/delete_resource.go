@@ -39,7 +39,7 @@ func BuildDeleteResourceHandler(db *sql.DB, schema string) func(resources.Delete
 		}
 
 		// Verify that the resource exists.
-		exists, err := permsdb.ResourceExists(tx, &params.ID)
+		exists, err := permsdb.ResourceExists(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -57,7 +57,7 @@ func BuildDeleteResourceHandler(db *sql.DB, schema string) func(resources.Delete
 		}
 
 		// Delete the resource.
-		err = permsdb.DeleteResource(tx, &params.ID)
+		err = permsdb.DeleteResource(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

@@ -85,7 +85,7 @@ func BuildBySubjectAndResourceHandler(
 		}
 
 		// Verify that the resource exists.
-		resource, err := permsdb.GetResourceByName(tx, &resourceName, resourceType.ID)
+		resource, err := permsdb.GetResourceByName(ctx, tx, &resourceName, resourceType.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

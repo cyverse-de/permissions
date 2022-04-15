@@ -40,7 +40,7 @@ func BuildListResourcesHandler(db *sql.DB, schema string) func(resources.ListRes
 		}
 
 		// List all resources.
-		result, err := permsdb.ListResources(tx, params.ResourceTypeName, params.ResourceName)
+		result, err := permsdb.ListResources(ctx, tx, params.ResourceTypeName, params.ResourceName)
 		if err != nil {
 			logger.Log.Error(err)
 			reason := err.Error()
