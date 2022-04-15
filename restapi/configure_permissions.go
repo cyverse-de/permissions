@@ -279,10 +279,29 @@ func configureTLS(tlsConfig *tls.Config) {
 func configureServer(s *http.Server, scheme, addr string) {
 }
 
+type OtelHandler struct {
+	handler http.Handler
+}
+
+func NewOtelHandler(handler http.Handler) http.Handler {
+	h := OtelHandler{
+		handler: handler,
+	}
+	return &h
+}
+
+func (h *OtelHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	mr := middleware.MatchedRouteFrom(r)
+	name := "HTTP " + r.Method + " " + mr.PathPattern
+
+	otelHandler := otelhttp.NewHandler(h.handler, name)
+	otelHandler.ServeHTTP(w, r)
+}
+
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
-	return otelhttp.NewHandler(handler, "HTTP request")
+	return NewOtelHandler(handler)
 }
 
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json
