@@ -30,7 +30,7 @@ func buildResourceTypesGetResponse(
 	}
 
 	// Get the list of resource types.
-	resourceTypes, err := permsdb.ListResourceTypes(tx, resourceTypeName)
+	resourceTypes, err := permsdb.ListResourceTypes(ctx, tx, resourceTypeName)
 	if err != nil {
 		return nil, err
 	}

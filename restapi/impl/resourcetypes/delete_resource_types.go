@@ -37,7 +37,7 @@ func BuildResourceTypesIDDeleteHandler(
 		}
 
 		// Verify that the resource type exists.
-		exists, err := permsdb.ResourceTypeExists(tx, &params.ID)
+		exists, err := permsdb.ResourceTypeExists(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()
@@ -71,7 +71,7 @@ func BuildResourceTypesIDDeleteHandler(
 		}
 
 		// Delete the resource type.
-		err = permsdb.DeleteResourceType(tx, &params.ID)
+		err = permsdb.DeleteResourceType(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()

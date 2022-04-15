@@ -37,7 +37,7 @@ func BuildResourceTypesPostHandler(db *sql.DB, schema string) func(resource_type
 		}
 
 		// Check for a duplicate name.
-		duplicate, err := permsdb.GetResourceTypeByName(tx, resourceTypeIn.Name)
+		duplicate, err := permsdb.GetResourceTypeByName(ctx, tx, resourceTypeIn.Name)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()
@@ -54,7 +54,7 @@ func BuildResourceTypesPostHandler(db *sql.DB, schema string) func(resource_type
 		}
 
 		// Save the resource type.
-		resourceTypeOut, err := permsdb.AddNewResourceType(tx, resourceTypeIn)
+		resourceTypeOut, err := permsdb.AddNewResourceType(ctx, tx, resourceTypeIn)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()

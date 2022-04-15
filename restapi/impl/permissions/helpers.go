@@ -57,13 +57,14 @@ func getOrAddSubject(
 }
 
 func getOrAddResource(
+	ctx context.Context,
 	tx *sql.Tx,
 	resourceIn *models.ResourceIn,
 	erf *ErrorResponseFns,
 ) (*models.ResourceOut, middleware.Responder) {
 
 	// Look up the resource type.
-	resourceType, err := permsdb.GetResourceTypeByName(tx, resourceIn.ResourceType)
+	resourceType, err := permsdb.GetResourceTypeByName(ctx, tx, resourceIn.ResourceType)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())

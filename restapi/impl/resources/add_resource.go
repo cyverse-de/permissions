@@ -40,7 +40,7 @@ func BuildAddResourceHandler(db *sql.DB, schema string) func(resources.AddResour
 		}
 
 		// Load the resource type.
-		resourceType, err := permsdb.GetResourceTypeByName(tx, resourceIn.ResourceType)
+		resourceType, err := permsdb.GetResourceTypeByName(ctx, tx, resourceIn.ResourceType)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

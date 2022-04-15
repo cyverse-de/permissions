@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -8,17 +9,17 @@ import (
 )
 
 // ListResourceTypes lists all defined resource types.
-func ListResourceTypes(tx *sql.Tx, resourceTypeName *string) ([]*models.ResourceTypeOut, error) {
+func ListResourceTypes(ctx context.Context, tx *sql.Tx, resourceTypeName *string) ([]*models.ResourceTypeOut, error) {
 
 	// Query the database.
 	var rows *sql.Rows
 	var err error
 	if resourceTypeName == nil {
 		query := "SELECT id, name, description FROM resource_types"
-		rows, err = tx.Query(query)
+		rows, err = tx.QueryContext(ctx, query)
 	} else {
 		query := "SELECT id, name, description FROM resource_types WHERE name = $1"
-		rows, err = tx.Query(query, *resourceTypeName)
+		rows, err = tx.QueryContext(ctx, query, *resourceTypeName)
 	}
 	if err != nil {
 		return nil, err
@@ -44,13 +45,13 @@ func ListResourceTypes(tx *sql.Tx, resourceTypeName *string) ([]*models.Resource
 }
 
 // GetResourceTypeByName gets information about the resource type with the given name.
-func GetResourceTypeByName(tx *sql.Tx, name *string) (*models.ResourceTypeOut, error) {
+func GetResourceTypeByName(ctx context.Context, tx *sql.Tx, name *string) (*models.ResourceTypeOut, error) {
 
 	// Query the database.
 	query := `SELECT id, name, description FROM resource_types
 	          WHERE lower(trim(regexp_replace(name, '\s+', ' ', 'g')))
 	              = lower(trim(regexp_replace($1, '\s+', ' ', 'g')))`
-	rows, err := tx.Query(query, name)
+	rows, err := tx.QueryContext(ctx, query, name)
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +81,14 @@ func GetResourceTypeByName(tx *sql.Tx, name *string) (*models.ResourceTypeOut, e
 
 // GetDuplicateResourceTypeByName returns information about the resource type with the given name, and checks for
 // duplicates
-func GetDuplicateResourceTypeByName(tx *sql.Tx, id *string, name *string) (*models.ResourceTypeOut, error) {
+func GetDuplicateResourceTypeByName(ctx context.Context, tx *sql.Tx, id *string, name *string) (*models.ResourceTypeOut, error) {
 
 	// Query the database.
 	query := `SELECT id, name, description FROM resource_types
 	          WHERE id != $1
 	          AND lower(trim(regexp_replace(name, '\s+', ' ', 'g')))
 	            = lower(trim(regexp_replace($2, '\s+', ' ', 'g')))`
-	rows, err := tx.Query(query, id, name)
+	rows, err := tx.QueryContext(ctx, query, id, name)
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +117,11 @@ func GetDuplicateResourceTypeByName(tx *sql.Tx, id *string, name *string) (*mode
 }
 
 // ResourceTypeExists determines whether or not the resource type with the given ID exists.
-func ResourceTypeExists(tx *sql.Tx, id *string) (bool, error) {
+func ResourceTypeExists(ctx context.Context, tx *sql.Tx, id *string) (bool, error) {
 
 	// Query the database.
 	query := "SELECT count(*) FROM resource_types WHERE id = $1"
-	row := tx.QueryRow(query, id)
+	row := tx.QueryRowContext(ctx, query, id)
 
 	// Get the result.
 	var count uint32
@@ -131,13 +132,13 @@ func ResourceTypeExists(tx *sql.Tx, id *string) (bool, error) {
 }
 
 // AddNewResourceType adds a new resource type to the database.
-func AddNewResourceType(tx *sql.Tx, resourceTypeIn *models.ResourceTypeIn) (*models.ResourceTypeOut, error) {
+func AddNewResourceType(ctx context.Context, tx *sql.Tx, resourceTypeIn *models.ResourceTypeIn) (*models.ResourceTypeOut, error) {
 
 	// Insert the resource type.
 	query := `INSERT INTO resource_types (name, description)
 	          VALUES (trim(regexp_replace($1, '\s+', ' ', 'g')), $2)
 	          RETURNING id, name, description`
-	row := tx.QueryRow(query, resourceTypeIn.Name, resourceTypeIn.Description)
+	row := tx.QueryRowContext(ctx, query, resourceTypeIn.Name, resourceTypeIn.Description)
 
 	// Get the newly created resource type.
 	var resourceTypeOut models.ResourceTypeOut
@@ -149,6 +150,7 @@ func AddNewResourceType(tx *sql.Tx, resourceTypeIn *models.ResourceTypeIn) (*mod
 
 // UpdateResourceType updates a resource type in the database.
 func UpdateResourceType(
+	ctx context.Context,
 	tx *sql.Tx,
 	id *string,
 	resourceTypeIn *models.ResourceTypeIn,
@@ -160,7 +162,7 @@ func UpdateResourceType(
 	                  description = $2
 	              WHERE id = $3
 	              RETURNING id, name, description`
-	row := tx.QueryRow(statement, resourceTypeIn.Name, resourceTypeIn.Description, id)
+	row := tx.QueryRowContext(ctx, statement, resourceTypeIn.Name, resourceTypeIn.Description, id)
 
 	// Get the newly updated resource type.
 	var resourceTypeOut models.ResourceTypeOut
@@ -172,11 +174,11 @@ func UpdateResourceType(
 }
 
 // DeleteResourceType removes a resource type from the database.
-func DeleteResourceType(tx *sql.Tx, id *string) error {
+func DeleteResourceType(ctx context.Context, tx *sql.Tx, id *string) error {
 
 	// Update the database.
 	statement := "DELETE FROM resource_types WHERE id = $1"
-	result, err := tx.Exec(statement, id)
+	result, err := tx.ExecContext(ctx, statement, id)
 	if err != nil {
 		return err
 	}

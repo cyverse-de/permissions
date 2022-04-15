@@ -57,7 +57,7 @@ func BuildDeleteResourceTypeByNameHandler(
 		}
 
 		// Verify that the resource type exists.
-		resourceType, err := permsdb.GetResourceTypeByName(tx, &params.ResourceTypeName)
+		resourceType, err := permsdb.GetResourceTypeByName(ctx, tx, &params.ResourceTypeName)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -83,7 +83,7 @@ func BuildDeleteResourceTypeByNameHandler(
 		}
 
 		// Delete the resource type.
-		if err := permsdb.DeleteResourceType(tx, resourceType.ID); err != nil {
+		if err := permsdb.DeleteResourceType(ctx, tx, resourceType.ID); err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			return deleteResourceTypeByNameInternalServerError(err.Error())

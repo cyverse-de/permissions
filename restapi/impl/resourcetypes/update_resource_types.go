@@ -36,7 +36,7 @@ func BuildResourceTypesIDPutHandler(db *sql.DB, schema string) func(resource_typ
 		}
 
 		// Verify that the resource type exists.
-		exists, err := permsdb.ResourceTypeExists(tx, &params.ID)
+		exists, err := permsdb.ResourceTypeExists(ctx, tx, &params.ID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()
@@ -53,7 +53,7 @@ func BuildResourceTypesIDPutHandler(db *sql.DB, schema string) func(resource_typ
 		}
 
 		// Check for a duplicate name.
-		duplicate, err := permsdb.GetDuplicateResourceTypeByName(tx, &params.ID, resourceTypeIn.Name)
+		duplicate, err := permsdb.GetDuplicateResourceTypeByName(ctx, tx, &params.ID, resourceTypeIn.Name)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()
@@ -70,7 +70,7 @@ func BuildResourceTypesIDPutHandler(db *sql.DB, schema string) func(resource_typ
 		}
 
 		// Update the resource type.
-		resourceTypeOut, err := permsdb.UpdateResourceType(tx, &params.ID, resourceTypeIn)
+		resourceTypeOut, err := permsdb.UpdateResourceType(ctx, tx, &params.ID, resourceTypeIn)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			reason := err.Error()

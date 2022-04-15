@@ -69,7 +69,7 @@ func BuildBySubjectAndResourceTypeAbbreviatedHandler(
 		}
 
 		// Verify that the resource type exists.
-		resourceType, err := permsdb.GetResourceTypeByName(tx, &resourceTypeName)
+		resourceType, err := permsdb.GetResourceTypeByName(ctx, tx, &resourceTypeName)
 		if err != nil {
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeAbbreviatedInternalServerError(err.Error())

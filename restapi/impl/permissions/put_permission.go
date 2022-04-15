@@ -71,7 +71,7 @@ func BuildPutPermissionHandler(
 			Name:         &params.ResourceName,
 			ResourceType: &params.ResourceType,
 		}
-		resource, errorResponder := getOrAddResource(tx, resourceIn, erf)
+		resource, errorResponder := getOrAddResource(ctx, tx, resourceIn, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder

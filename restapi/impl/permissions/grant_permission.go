@@ -61,7 +61,7 @@ func BuildGrantPermissionHandler(
 		}
 
 		// Either get or add the resource.
-		resource, errorResponder := getOrAddResource(tx, req.Resource, erf)
+		resource, errorResponder := getOrAddResource(ctx, tx, req.Resource, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder
