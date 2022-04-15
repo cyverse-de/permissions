@@ -50,7 +50,7 @@ func BuildListPermissionsHandler(
 		}
 
 		// Add subject sources to the permission list.
-		if err = grouper.AddSourceIDToPermissions(result); err != nil {
+		if err = grouper.AddSourceIDToPermissions(ctx, result); err != nil {
 			logger.Log.Error(err)
 			return internalServerError(err.Error())
 		}

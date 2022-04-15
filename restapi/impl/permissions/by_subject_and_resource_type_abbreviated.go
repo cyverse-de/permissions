@@ -79,7 +79,7 @@ func BuildBySubjectAndResourceTypeAbbreviatedHandler(
 		}
 
 		// Get the list of subject IDs to use for the query.
-		subjectIDs, err := buildSubjectIDList(grouperClient, subjectType, subjectID, lookup)
+		subjectIDs, err := buildSubjectIDList(ctx, grouperClient, subjectType, subjectID, lookup)
 		if err != nil {
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeAbbreviatedInternalServerError(err.Error())

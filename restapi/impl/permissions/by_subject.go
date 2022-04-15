@@ -71,7 +71,7 @@ func BuildBySubjectHandler(
 		}
 
 		// Get the list of subject IDs to use for the query.
-		subjectIds, err := buildSubjectIDList(grouperClient, subjectType, subjectID, lookup)
+		subjectIds, err := buildSubjectIDList(ctx, grouperClient, subjectType, subjectID, lookup)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
@@ -104,7 +104,7 @@ func BuildBySubjectHandler(
 		}
 
 		// Add the subject source ID to the response body.
-		if err := grouperClient.AddSourceIDToPermissions(perms); err != nil {
+		if err := grouperClient.AddSourceIDToPermissions(ctx, perms); err != nil {
 			logger.Log.Error(err)
 			return bySubjectInternalServerError(err.Error())
 		}

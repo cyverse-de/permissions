@@ -121,7 +121,7 @@ func extractLookupFlag(lookup *bool) bool {
 	return false
 }
 
-func groupIdsForSubject(grouperClient grouper.Grouper, subjectType, subjectID string) ([]string, error) {
+func groupIdsForSubject(ctx context.Context, grouperClient grouper.Grouper, subjectType, subjectID string) ([]string, error) {
 	groupIds := make([]string, 0)
 
 	// Simply return an empty slice if the subject is a group.
@@ -130,7 +130,7 @@ func groupIdsForSubject(grouperClient grouper.Grouper, subjectType, subjectID st
 	}
 
 	// Look up the groups.
-	groups, err := grouperClient.GroupsForSubject(subjectID)
+	groups, err := grouperClient.GroupsForSubject(ctx, subjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +143,9 @@ func groupIdsForSubject(grouperClient grouper.Grouper, subjectType, subjectID st
 	return groupIds, nil
 }
 
-func buildSubjectIDList(grouperClient grouper.Grouper, subjectType, subjectID string, lookup bool) ([]string, error) {
+func buildSubjectIDList(ctx context.Context, grouperClient grouper.Grouper, subjectType, subjectID string, lookup bool) ([]string, error) {
 	if lookup {
-		groupIds, err := groupIdsForSubject(grouperClient, subjectType, subjectID)
+		groupIds, err := groupIdsForSubject(ctx, grouperClient, subjectType, subjectID)
 		if err != nil {
 			return nil, err
 		}

@@ -1,13 +1,17 @@
 package grouper
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/cyverse-de/dbutil"
 	"github.com/cyverse-de/permissions/models"
+	"go.opentelemetry.io/otel"
 
 	"github.com/lib/pq"
 )
+
+const otelName = "github.com/cyverse-de/permissions/clients/grouper"
 
 // GroupInfo represents information about a group in Grouper.
 type GroupInfo struct {
@@ -17,9 +21,9 @@ type GroupInfo struct {
 
 // Grouper is the interface implemented by a Grouper client instance.
 type Grouper interface {
-	GroupsForSubject(string) ([]*GroupInfo, error)
-	AddSourceIDToPermissions([]*models.Permission) error
-	AddSourceIDToPermission(*models.Permission) error
+	GroupsForSubject(context.Context, string) ([]*GroupInfo, error)
+	AddSourceIDToPermissions(context.Context, []*models.Permission) error
+	AddSourceIDToPermission(context.Context, *models.Permission) error
 }
 
 // Client represents a Grouper client instance.
@@ -50,12 +54,14 @@ func NewGrouperClient(dbURI, prefix string) (*Client, error) {
 }
 
 // GroupsForSubject returns the list of groups that the subject with the given ID belongs to.
-func (gc *Client) GroupsForSubject(subjectID string) ([]*GroupInfo, error) {
+func (gc *Client) GroupsForSubject(ctx context.Context, subjectID string) ([]*GroupInfo, error) {
+	ctx, span := otel.Tracer(otelName).Start(ctx, "GroupsForSubject")
+	defer span.End()
 
 	// Query the database.
 	query := `SELECT group_id, group_name FROM grouper_memberships_v
             WHERE subject_id = $1 AND group_name LIKE $2 AND list_name = 'members'`
-	rows, err := gc.db.Query(query, subjectID, gc.prefix+"%")
+	rows, err := gc.db.QueryContext(ctx, query, subjectID, gc.prefix+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +80,9 @@ func (gc *Client) GroupsForSubject(subjectID string) ([]*GroupInfo, error) {
 }
 
 // AddSourceIDToPermissions adds the subject source IDs to a slice of Permission objects.
-func (gc *Client) AddSourceIDToPermissions(permissions []*models.Permission) error {
+func (gc *Client) AddSourceIDToPermissions(ctx context.Context, permissions []*models.Permission) error {
+	ctx, span := otel.Tracer(otelName).Start(ctx, "AddSourceIDToPermissions")
+	defer span.End()
 
 	// Get a list of subject identifiers.
 	subjectIDs := make([]string, 0)
@@ -85,7 +93,7 @@ func (gc *Client) AddSourceIDToPermissions(permissions []*models.Permission) err
 	// Query the database.
 	query := `SELECT subject_id, subject_source FROM grouper_members
             WHERE subject_id = ANY($1)`
-	rows, err := gc.db.Query(query, pq.Array(subjectIDs))
+	rows, err := gc.db.QueryContext(ctx, query, pq.Array(subjectIDs))
 	if err != nil {
 		return err
 	}
@@ -111,6 +119,6 @@ func (gc *Client) AddSourceIDToPermissions(permissions []*models.Permission) err
 }
 
 // AddSourceIDToPermission adds the subject source ID to a permission object.
-func (gc *Client) AddSourceIDToPermission(permission *models.Permission) error {
-	return gc.AddSourceIDToPermissions([]*models.Permission{permission})
+func (gc *Client) AddSourceIDToPermission(ctx context.Context, permission *models.Permission) error {
+	return gc.AddSourceIDToPermissions(ctx, []*models.Permission{permission})
 }

@@ -90,7 +90,7 @@ func BuildGrantPermissionHandler(
 		}
 
 		// Add the subject source ID to the permission object.
-		if err := grouperClient.AddSourceIDToPermission(permission); err != nil {
+		if err := grouperClient.AddSourceIDToPermission(ctx, permission); err != nil {
 			logger.Log.Error(err)
 			return grantPermissionInternalServerError(err.Error())
 		}
