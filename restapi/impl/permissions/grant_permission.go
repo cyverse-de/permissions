@@ -68,14 +68,14 @@ func BuildGrantPermissionHandler(
 		}
 
 		// Look up the permission level.
-		permissionLevelID, errorResponder := getPermissionLevel(tx, *req.PermissionLevel, erf)
+		permissionLevelID, errorResponder := getPermissionLevel(ctx, tx, *req.PermissionLevel, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder
 		}
 
 		// Either update or add the permission.
-		permission, err := permsdb.UpsertPermission(tx, *subject.ID, *resource.ID, *permissionLevelID)
+		permission, err := permsdb.UpsertPermission(ctx, tx, *subject.ID, *resource.ID, *permissionLevelID)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

@@ -73,7 +73,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 			}
 
 			// Copy the permissions.
-			if err := permsdb.CopyPermissions(tx, source, dest); err != nil {
+			if err := permsdb.CopyPermissions(ctx, tx, source, dest); err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
 				return copyPermissionsInternalServerError(err.Error())

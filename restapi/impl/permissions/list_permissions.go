@@ -43,7 +43,7 @@ func BuildListPermissionsHandler(
 		}
 
 		// List all permissions.
-		result, err := permsdb.ListPermissions(tx)
+		result, err := permsdb.ListPermissions(ctx, tx)
 		if err != nil {
 			logger.Log.Error(err)
 			return internalServerError(err.Error())

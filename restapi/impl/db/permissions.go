@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -51,7 +52,7 @@ func rowsToAbbreviatedPermissionList(rows *sql.Rows) ([]*models.AbbreviatedPermi
 }
 
 // ListPermissions lists all existing permissions.
-func ListPermissions(tx *sql.Tx) ([]*models.Permission, error) {
+func ListPermissions(ctx context.Context, tx *sql.Tx) ([]*models.Permission, error) {
 
 	// Query the database.
 	query := `SELECT p.id AS id,
@@ -68,7 +69,7 @@ func ListPermissions(tx *sql.Tx) ([]*models.Permission, error) {
 	          JOIN resources r ON p.resource_id = r.id
 	          JOIN resource_types rt ON r.resource_type_id = rt.id
 	          ORDER BY s.subject_id, r.name, pl.precedence`
-	rows, err := tx.Query(query)
+	rows, err := tx.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func ListPermissions(tx *sql.Tx) ([]*models.Permission, error) {
 }
 
 // ListResourcePermissions lists permissions associated with a specific resource.
-func ListResourcePermissions(tx *sql.Tx, resourceTypeName, resourceName string) ([]*models.Permission, error) {
+func ListResourcePermissions(ctx context.Context, tx *sql.Tx, resourceTypeName, resourceName string) ([]*models.Permission, error) {
 
 	// Query the database.
 	query := `SELECT p.id AS id,
@@ -96,7 +97,7 @@ func ListResourcePermissions(tx *sql.Tx, resourceTypeName, resourceName string) 
 	          JOIN resource_types rt ON r.resource_type_id = rt.id
             WHERE rt.name = $1 AND r.name = $2
 	          ORDER BY s.subject_id`
-	rows, err := tx.Query(query, resourceTypeName, resourceName)
+	rows, err := tx.QueryContext(ctx, query, resourceTypeName, resourceName)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +107,7 @@ func ListResourcePermissions(tx *sql.Tx, resourceTypeName, resourceName string) 
 }
 
 // PermissionsForSubjects lists permissions granted to zero or more subjects.
-func PermissionsForSubjects(tx *sql.Tx, subjectIds []string) ([]*models.Permission, error) {
+func PermissionsForSubjects(ctx context.Context, tx *sql.Tx, subjectIds []string) ([]*models.Permission, error) {
 	sa := StringArray(subjectIds)
 
 	// Query the database.
@@ -127,7 +128,7 @@ func PermissionsForSubjects(tx *sql.Tx, subjectIds []string) ([]*models.Permissi
 	          WHERE s.subject_id = any($1)
 	          WINDOW w AS (PARTITION BY r.id ORDER BY pl.precedence)
             ORDER BY r.id`
-	rows, err := tx.Query(query, &sa)
+	rows, err := tx.QueryContext(ctx, query, &sa)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +138,7 @@ func PermissionsForSubjects(tx *sql.Tx, subjectIds []string) ([]*models.Permissi
 }
 
 // PermissionsForSubjectsMinLevel lists permissions of at least the given level granted to zero or more subjects.
-func PermissionsForSubjectsMinLevel(tx *sql.Tx, subjectIds []string, minLevel string) ([]*models.Permission, error) {
+func PermissionsForSubjectsMinLevel(ctx context.Context, tx *sql.Tx, subjectIds []string, minLevel string) ([]*models.Permission, error) {
 	sa := StringArray(subjectIds)
 
 	// Query the database.
@@ -159,7 +160,7 @@ func PermissionsForSubjectsMinLevel(tx *sql.Tx, subjectIds []string, minLevel st
             AND pl.precedence <= (SELECT precedence FROM permission_levels WHERE name = $2)
 	          WINDOW w AS (PARTITION BY r.id ORDER BY pl.precedence)
             ORDER BY r.id`
-	rows, err := tx.Query(query, &sa, minLevel)
+	rows, err := tx.QueryContext(ctx, query, &sa, minLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +172,7 @@ func PermissionsForSubjectsMinLevel(tx *sql.Tx, subjectIds []string, minLevel st
 // PermissionsForSubjectsAndResourceType lists permissions that have been granted to zero or more subjects for the
 // specified type of resource.
 func PermissionsForSubjectsAndResourceType(
-	tx *sql.Tx, subjectIds []string, resourceTypeName string,
+	ctx context.Context, tx *sql.Tx, subjectIds []string, resourceTypeName string,
 ) ([]*models.Permission, error) {
 	sa := StringArray(subjectIds)
 
@@ -194,7 +195,7 @@ func PermissionsForSubjectsAndResourceType(
             AND rt.Name = $2
 	          WINDOW w AS (PARTITION BY r.id ORDER BY pl.precedence)
             ORDER BY r.id`
-	rows, err := tx.Query(query, &sa, resourceTypeName)
+	rows, err := tx.QueryContext(ctx, query, &sa, resourceTypeName)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func PermissionsForSubjectsAndResourceType(
 // PermissionsForSubjectsAndResourceTypeMinLevel lists permissions of at least the minimum level that have been
 // granted to zero or more subjects for the specified type of resource.
 func PermissionsForSubjectsAndResourceTypeMinLevel(
-	tx *sql.Tx, subjectIds []string, resourceTypeName, minLevel string,
+	ctx context.Context, tx *sql.Tx, subjectIds []string, resourceTypeName, minLevel string,
 ) ([]*models.Permission, error) {
 	sa := StringArray(subjectIds)
 
@@ -230,7 +231,7 @@ func PermissionsForSubjectsAndResourceTypeMinLevel(
             AND pl.precedence <= (SELECT precedence FROM permission_levels WHERE name = $3)
 	          WINDOW w AS (PARTITION BY r.id ORDER BY pl.precedence)
             ORDER BY r.id`
-	rows, err := tx.Query(query, &sa, resourceTypeName, minLevel)
+	rows, err := tx.QueryContext(ctx, query, &sa, resourceTypeName, minLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +254,7 @@ func permissionLevelPrecedenceExpression(prefix, permissionLevel string) sq.Sele
 // minLevel parameter is specified, permissions that don't meet or exceed the minimum level will be omitted
 // from the results.
 func AbbreviatedPermissionsForSubjectAndResourceType(
-	tx *sql.Tx, subjectIDs []string, resourceTypeName string, minLevel *string,
+	ctx context.Context, tx *sql.Tx, subjectIDs []string, resourceTypeName string, minLevel *string,
 ) ([]*models.AbbreviatedPermission, error) {
 
 	// Begin building the query.
@@ -287,7 +288,7 @@ func AbbreviatedPermissionsForSubjectAndResourceType(
 	}
 
 	// Execute the query.
-	rows, err := tx.Query(query, args...)
+	rows, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +299,7 @@ func AbbreviatedPermissionsForSubjectAndResourceType(
 
 // PermissionsForSubjectsAndResource lists permissions granted to zero or more subjects for a specific resource.
 func PermissionsForSubjectsAndResource(
-	tx *sql.Tx, subjectIds []string, resourceTypeName, resourceName string,
+	ctx context.Context, tx *sql.Tx, subjectIds []string, resourceTypeName, resourceName string,
 ) ([]*models.Permission, error) {
 	sa := StringArray(subjectIds)
 
@@ -322,7 +323,7 @@ func PermissionsForSubjectsAndResource(
 	          AND r.name = $3
 	          WINDOW w AS (PARTITION BY r.id ORDER BY pl.precedence)
             ORDER BY r.id`
-	rows, err := tx.Query(query, &sa, resourceTypeName, resourceName)
+	rows, err := tx.QueryContext(ctx, query, &sa, resourceTypeName, resourceName)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +335,7 @@ func PermissionsForSubjectsAndResource(
 // PermissionsForSubjectsAndResourceMinLevel lists permissions of at least the minimum level that have been granted
 // to zero or more subjects for a specific resource.
 func PermissionsForSubjectsAndResourceMinLevel(
-	tx *sql.Tx, subjectIds []string, resourceTypeName, resourceName, minLevel string,
+	ctx context.Context, tx *sql.Tx, subjectIds []string, resourceTypeName, resourceName, minLevel string,
 ) ([]*models.Permission, error) {
 	sa := StringArray(subjectIds)
 
@@ -359,7 +360,7 @@ func PermissionsForSubjectsAndResourceMinLevel(
             AND pl.precedence <= (SELECT precedence FROM permission_levels WHERE name = $4)
 	          WINDOW w AS (PARTITION BY r.id ORDER BY pl.precedence)
             ORDER BY r.id`
-	rows, err := tx.Query(query, &sa, resourceTypeName, resourceName, minLevel)
+	rows, err := tx.QueryContext(ctx, query, &sa, resourceTypeName, resourceName, minLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +370,7 @@ func PermissionsForSubjectsAndResourceMinLevel(
 }
 
 // GetPermissionByID obtains information about a specific permission.
-func GetPermissionByID(tx *sql.Tx, permissionID string) (*models.Permission, error) {
+func GetPermissionByID(ctx context.Context, tx *sql.Tx, permissionID string) (*models.Permission, error) {
 
 	// Query the database.
 	query := `SELECT p.id AS id,
@@ -386,7 +387,7 @@ func GetPermissionByID(tx *sql.Tx, permissionID string) (*models.Permission, err
 	          JOIN resources r ON p.resource_id = r.id
 	          JOIN resource_types rt ON r.resource_type_id = rt.id
 	          WHERE p.id = $1`
-	rows, err := tx.Query(query, &permissionID)
+	rows, err := tx.QueryContext(ctx, query, &permissionID)
 	if err != nil {
 		return nil, err
 	}
@@ -411,11 +412,11 @@ func GetPermissionByID(tx *sql.Tx, permissionID string) (*models.Permission, err
 }
 
 // GetPermissionLevelIDByName returns the identifier for the permission level with the given name.
-func GetPermissionLevelIDByName(tx *sql.Tx, level models.PermissionLevel) (*string, error) {
+func GetPermissionLevelIDByName(ctx context.Context, tx *sql.Tx, level models.PermissionLevel) (*string, error) {
 
 	// Query the database.
 	query := "SELECT id FROM permission_levels WHERE name = $1"
-	rows, err := tx.Query(query, string(level))
+	rows, err := tx.QueryContext(ctx, query, string(level))
 	if err != nil {
 		return nil, err
 	}
@@ -446,6 +447,7 @@ func GetPermissionLevelIDByName(tx *sql.Tx, level models.PermissionLevel) (*stri
 
 // UpsertPermission updates a permission or inserts it if it doesn't exist.
 func UpsertPermission(
+	ctx context.Context,
 	tx *sql.Tx,
 	subjectID models.InternalSubjectID,
 	resourceID string,
@@ -457,7 +459,7 @@ func UpsertPermission(
 	         ON CONFLICT (subject_id, resource_id) DO UPDATE
 	         SET permission_level_id = EXCLUDED.permission_level_id
 	         RETURNING id`
-	row := tx.QueryRow(stmt, string(subjectID), resourceID, permissionLevelID)
+	row := tx.QueryRowContext(ctx, stmt, string(subjectID), resourceID, permissionLevelID)
 
 	// Extract the permission ID.
 	var permissionID string
@@ -466,7 +468,7 @@ func UpsertPermission(
 	}
 
 	// Look up the permission.
-	permission, err := GetPermissionByID(tx, permissionID)
+	permission, err := GetPermissionByID(ctx, tx, permissionID)
 	if err != nil {
 		return nil, err
 	} else if permission == nil {
@@ -477,6 +479,7 @@ func UpsertPermission(
 
 // GetPermission gets a subject's permission to a specific resource if it exists.
 func GetPermission(
+	ctx context.Context,
 	tx *sql.Tx,
 	subjectID models.InternalSubjectID,
 	resourceID string,
@@ -498,7 +501,7 @@ func GetPermission(
 	          JOIN resource_types rt ON r.resource_type_id = rt.id
 	          WHERE p.subject_id = $1
 	          AND p.resource_id = $2`
-	rows, err := tx.Query(query, string(subjectID), resourceID)
+	rows, err := tx.QueryContext(ctx, query, string(subjectID), resourceID)
 	if err != nil {
 		return nil, err
 	}
@@ -523,11 +526,11 @@ func GetPermission(
 }
 
 // DeletePermission removes a permission from the database.
-func DeletePermission(tx *sql.Tx, id models.PermissionID) error {
+func DeletePermission(ctx context.Context, tx *sql.Tx, id models.PermissionID) error {
 
 	// Update the database.
 	stmt := "DELETE FROM permissions WHERE id = $1"
-	result, err := tx.Exec(stmt, string(id))
+	result, err := tx.ExecContext(ctx, stmt, string(id))
 	if err != nil {
 		return err
 	}
@@ -548,7 +551,7 @@ func DeletePermission(tx *sql.Tx, id models.PermissionID) error {
 }
 
 // CopyPermissions copies permissions from one subject to another.
-func CopyPermissions(tx *sql.Tx, source, dest *models.SubjectOut) error {
+func CopyPermissions(ctx context.Context, tx *sql.Tx, source, dest *models.SubjectOut) error {
 
 	// Copy or update permissions.
 	stmt := `INSERT INTO permissions AS d (subject_id, resource_id, permission_level_id)
@@ -559,7 +562,7 @@ func CopyPermissions(tx *sql.Tx, source, dest *models.SubjectOut) error {
                WHERE id IN (d.permission_level_id, EXCLUDED.permission_level_id)
                ORDER BY precedence LIMIT 1
            )`
-	_, err := tx.Exec(stmt, &source.ID, &dest.ID)
+	_, err := tx.ExecContext(ctx, stmt, &source.ID, &dest.ID)
 
 	return err
 }

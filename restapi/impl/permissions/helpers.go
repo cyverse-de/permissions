@@ -94,13 +94,14 @@ func getOrAddResource(
 }
 
 func getPermissionLevel(
+	ctx context.Context,
 	tx *sql.Tx,
 	level models.PermissionLevel,
 	erf *ErrorResponseFns,
 ) (*string, middleware.Responder) {
 
 	// Look up the permission level.
-	permissionLevelID, err := permsdb.GetPermissionLevelIDByName(tx, level)
+	permissionLevelID, err := permsdb.GetPermissionLevelIDByName(ctx, tx, level)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())

@@ -50,7 +50,7 @@ func BuildListResourcePermissionsHandler(
 		}
 
 		// List the permissions for the resource.
-		perms, err := permsdb.ListResourcePermissions(tx, resourceTypeName, resourceName)
+		perms, err := permsdb.ListResourcePermissions(ctx, tx, resourceTypeName, resourceName)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

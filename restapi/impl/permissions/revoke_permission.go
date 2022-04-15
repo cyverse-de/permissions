@@ -80,7 +80,7 @@ func BuildRevokePermissionHandler(db *sql.DB, schema string) func(permissions.Re
 		}
 
 		// Look up the permission.
-		permission, err := permsdb.GetPermission(tx, *subject.ID, *resource.ID)
+		permission, err := permsdb.GetPermission(ctx, tx, *subject.ID, *resource.ID)
 		if err != nil {
 			logger.Log.Error(err)
 			return revokePermissionInternalServerError(err.Error())
@@ -93,7 +93,7 @@ func BuildRevokePermissionHandler(db *sql.DB, schema string) func(permissions.Re
 		}
 
 		// Delete the permission.
-		err = permsdb.DeletePermission(tx, *permission.ID)
+		err = permsdb.DeletePermission(ctx, tx, *permission.ID)
 		if err != nil {
 			logger.Log.Error(err)
 			return revokePermissionInternalServerError(err.Error())

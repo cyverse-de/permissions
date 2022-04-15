@@ -95,14 +95,14 @@ func BuildBySubjectAndResourceTypeHandler(
 		// Perform the lookup.
 		var perms []*models.Permission
 		if minLevel == nil {
-			perms, err = permsdb.PermissionsForSubjectsAndResourceType(tx, subjectIds, resourceTypeName)
+			perms, err = permsdb.PermissionsForSubjectsAndResourceType(ctx, tx, subjectIds, resourceTypeName)
 			if err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
 				return bySubjectAndResourceTypeInternalServerError(err.Error())
 			}
 		} else {
-			perms, err = permsdb.PermissionsForSubjectsAndResourceTypeMinLevel(tx, subjectIds, resourceTypeName, *minLevel)
+			perms, err = permsdb.PermissionsForSubjectsAndResourceTypeMinLevel(ctx, tx, subjectIds, resourceTypeName, *minLevel)
 			if err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
