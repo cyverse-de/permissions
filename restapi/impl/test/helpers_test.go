@@ -2,6 +2,7 @@
 package test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"testing"
@@ -13,7 +14,7 @@ import (
 
 func addDefaultResourceType(tx *sql.Tx, name, description string, t *testing.T) {
 	rt := &models.ResourceTypeIn{Name: &name, Description: description}
-	if _, err := permsdb.AddNewResourceType(tx, rt); err != nil {
+	if _, err := permsdb.AddNewResourceType(context.Background(), tx, rt); err != nil {
 		tx.Rollback()
 		t.Fatalf("unable to add default resource types: %s", err)
 	}
@@ -57,7 +58,7 @@ func addTestResource(db *sql.DB, schema, name, resourceType string, t *testing.T
 	}
 
 	// Get the resource type.
-	rt, err := permsdb.GetResourceTypeByName(tx, &resourceType)
+	rt, err := permsdb.GetResourceTypeByName(context.Background(), tx, &resourceType)
 	if err != nil {
 		tx.Rollback()
 		t.Fatalf("unable to add a resource: %s", err)
@@ -68,7 +69,7 @@ func addTestResource(db *sql.DB, schema, name, resourceType string, t *testing.T
 	}
 
 	// Insert the resource.
-	if _, err := permsdb.AddResource(tx, &name, rt.ID); err != nil {
+	if _, err := permsdb.AddResource(context.Background(), tx, &name, rt.ID); err != nil {
 		tx.Rollback()
 		t.Fatalf("unable to add a resource: %s", err)
 	}
