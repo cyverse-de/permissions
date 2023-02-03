@@ -1,6 +1,8 @@
 package grouper
 
 import (
+	"context"
+
 	"github.com/cyverse-de/permissions/models"
 )
 
@@ -15,16 +17,16 @@ func NewMockGrouperClient(groups map[string][]*GroupInfo) *MockGrouperClient {
 }
 
 // GroupsForSubject returns a mock list of groups for a subject.
-func (gc *MockGrouperClient) GroupsForSubject(subjectID string) ([]*GroupInfo, error) {
+func (gc *MockGrouperClient) GroupsForSubject(_ context.Context, subjectID string) ([]*GroupInfo, error) {
 	return gc.groups[subjectID], nil
 }
 
 // AddSourceIDToPermissions is a no-op for now.
-func (gc *MockGrouperClient) AddSourceIDToPermissions(_ []*models.Permission) error {
+func (gc *MockGrouperClient) AddSourceIDToPermissions(_ context.Context, _ []*models.Permission) error {
 	return nil
 }
 
 // AddSourceIDToPermission is a no-op for now.
-func (gc *MockGrouperClient) AddSourceIDToPermission(_ *models.Permission) error {
+func (gc *MockGrouperClient) AddSourceIDToPermission(_ context.Context, _ *models.Permission) error {
 	return nil
 }

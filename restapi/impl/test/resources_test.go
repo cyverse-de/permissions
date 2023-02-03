@@ -2,6 +2,7 @@
 package test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"testing"
@@ -29,7 +30,7 @@ func listResourcesDirectly(db *sql.DB, schema string, t *testing.T) []*models.Re
 	}
 
 	// List the resources.
-	resources, err := permsdb.ListResources(tx, nil, nil)
+	resources, err := permsdb.ListResources(context.Background(), tx, nil, nil)
 	if err != nil {
 		t.Fatalf("unable to list resources: %s", err)
 	}
