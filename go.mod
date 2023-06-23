@@ -33,8 +33,7 @@ require (
 	go.mongodb.org/mongo-driver v1.5.2 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.31.0
 	go.opentelemetry.io/otel v1.6.3
-	golang.org/x/net v0.0.0-20210510120150-4163338589ed
-	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
+	golang.org/x/net v0.7.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 )
