@@ -1,7 +1,6 @@
-FROM golang:1.16-alpine
+FROM golang:1.20-alpine
 
 RUN apk add --no-cache git
-RUN go get -u github.com/jstemmer/go-junit-report
 
 COPY . /permissions/
 WORKDIR /permissions/
