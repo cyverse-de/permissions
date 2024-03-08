@@ -1,6 +1,6 @@
 module github.com/cyverse-de/permissions
 
-go 1.20
+go 1.21
 
 require (
 	github.com/Masterminds/squirrel v1.5.0
