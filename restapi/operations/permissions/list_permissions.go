@@ -29,12 +29,12 @@ func NewListPermissions(ctx *middleware.Context, handler ListPermissionsHandler)
 	return &ListPermissions{Context: ctx, Handler: handler}
 }
 
-/* ListPermissions swagger:route GET /permissions permissions listPermissions
+/*
+	ListPermissions swagger:route GET /permissions permissions listPermissions
 
-List Permissions
+# List Permissions
 
 Lists all permissions in the permission database. The total number of permissions for all resources is likely to be quite large, so callers should be prepared to handle the response body. If this endpoint is used more frequently than anticipated, limit and offset parameters will be added for paging later.
-
 */
 type ListPermissions struct {
 	Context *middleware.Context

@@ -29,12 +29,12 @@ func NewPutResourceTypesID(ctx *middleware.Context, handler PutResourceTypesIDHa
 	return &PutResourceTypesID{Context: ctx, Handler: handler}
 }
 
-/* PutResourceTypesID swagger:route PUT /resource_types/{id} resource_types putResourceTypesId
+/*
+	PutResourceTypesID swagger:route PUT /resource_types/{id} resource_types putResourceTypesId
 
-Update a Resource Type
+# Update a Resource Type
 
 Updates the name or description of a resource type. The new name of the resource type must be unique if one is provided.
-
 */
 type PutResourceTypesID struct {
 	Context *middleware.Context

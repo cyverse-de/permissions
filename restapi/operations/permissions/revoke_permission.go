@@ -29,12 +29,12 @@ func NewRevokePermission(ctx *middleware.Context, handler RevokePermissionHandle
 	return &RevokePermission{Context: ctx, Handler: handler}
 }
 
-/* RevokePermission swagger:route DELETE /permissions/resources/{resource_type}/{resource_name}/subjects/{subject_type}/{subject_id} permissions revokePermission
+/*
+	RevokePermission swagger:route DELETE /permissions/resources/{resource_type}/{resource_name}/subjects/{subject_type}/{subject_id} permissions revokePermission
 
-Revoke Permission to a Resource
+# Revoke Permission to a Resource
 
 Removes a permission entry from the database. This endpoint will return an error status if the resource type, resource, subject or the permission itself does not exist.
-
 */
 type RevokePermission struct {
 	Context *middleware.Context

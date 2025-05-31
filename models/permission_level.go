@@ -20,8 +20,12 @@ import (
 type PermissionLevel string
 
 func NewPermissionLevel(value PermissionLevel) *PermissionLevel {
-	v := value
-	return &v
+	return &value
+}
+
+// Pointer returns a pointer to a freshly-allocated PermissionLevel.
+func (m PermissionLevel) Pointer() *PermissionLevel {
+	return &m
 }
 
 const (

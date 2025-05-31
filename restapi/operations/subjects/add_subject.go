@@ -29,12 +29,12 @@ func NewAddSubject(ctx *middleware.Context, handler AddSubjectHandler) *AddSubje
 	return &AddSubject{Context: ctx, Handler: handler}
 }
 
-/* AddSubject swagger:route POST /subjects subjects addSubject
+/*
+	AddSubject swagger:route POST /subjects subjects addSubject
 
-Add a Subject
+# Add a Subject
 
 Adds a subject (an entity to which permissions may be granted) to the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.
-
 */
 type AddSubject struct {
 	Context *middleware.Context

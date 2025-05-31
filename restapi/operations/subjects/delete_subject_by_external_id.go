@@ -29,12 +29,12 @@ func NewDeleteSubjectByExternalID(ctx *middleware.Context, handler DeleteSubject
 	return &DeleteSubjectByExternalID{Context: ctx, Handler: handler}
 }
 
-/* DeleteSubjectByExternalID swagger:route DELETE /subjects subjects deleteSubjectByExternalId
+/*
+	DeleteSubjectByExternalID swagger:route DELETE /subjects subjects deleteSubjectByExternalId
 
-Delete Subjects by External ID
+# Delete Subjects by External ID
 
 Removes subjects (entities to which permissions may be gratned) from the database.
-
 */
 type DeleteSubjectByExternalID struct {
 	Context *middleware.Context

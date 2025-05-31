@@ -16,7 +16,8 @@ import (
 // PutPermissionOKCode is the HTTP code returned for type PutPermissionOK
 const PutPermissionOKCode int = 200
 
-/*PutPermissionOK OK
+/*
+PutPermissionOK OK
 
 swagger:response putPermissionOK
 */
@@ -60,7 +61,8 @@ func (o *PutPermissionOK) WriteResponse(rw http.ResponseWriter, producer runtime
 // PutPermissionBadRequestCode is the HTTP code returned for type PutPermissionBadRequest
 const PutPermissionBadRequestCode int = 400
 
-/*PutPermissionBadRequest Bad Request
+/*
+PutPermissionBadRequest Bad Request
 
 swagger:response putPermissionBadRequest
 */
@@ -104,7 +106,8 @@ func (o *PutPermissionBadRequest) WriteResponse(rw http.ResponseWriter, producer
 // PutPermissionInternalServerErrorCode is the HTTP code returned for type PutPermissionInternalServerError
 const PutPermissionInternalServerErrorCode int = 500
 
-/*PutPermissionInternalServerError Internal Server Error
+/*
+PutPermissionInternalServerError Internal Server Error
 
 swagger:response putPermissionInternalServerError
 */

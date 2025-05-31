@@ -16,7 +16,8 @@ import (
 // AddSubjectCreatedCode is the HTTP code returned for type AddSubjectCreated
 const AddSubjectCreatedCode int = 201
 
-/*AddSubjectCreated Created
+/*
+AddSubjectCreated Created
 
 swagger:response addSubjectCreated
 */
@@ -60,7 +61,8 @@ func (o *AddSubjectCreated) WriteResponse(rw http.ResponseWriter, producer runti
 // AddSubjectBadRequestCode is the HTTP code returned for type AddSubjectBadRequest
 const AddSubjectBadRequestCode int = 400
 
-/*AddSubjectBadRequest Bad Request
+/*
+AddSubjectBadRequest Bad Request
 
 swagger:response addSubjectBadRequest
 */
@@ -104,7 +106,8 @@ func (o *AddSubjectBadRequest) WriteResponse(rw http.ResponseWriter, producer ru
 // AddSubjectInternalServerErrorCode is the HTTP code returned for type AddSubjectInternalServerError
 const AddSubjectInternalServerErrorCode int = 500
 
-/*AddSubjectInternalServerError Internal Server Error
+/*
+AddSubjectInternalServerError Internal Server Error
 
 swagger:response addSubjectInternalServerError
 */

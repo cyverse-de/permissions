@@ -16,7 +16,8 @@ import (
 // DeleteResourceOKCode is the HTTP code returned for type DeleteResourceOK
 const DeleteResourceOKCode int = 200
 
-/*DeleteResourceOK OK
+/*
+DeleteResourceOK OK
 
 swagger:response deleteResourceOK
 */
@@ -40,7 +41,8 @@ func (o *DeleteResourceOK) WriteResponse(rw http.ResponseWriter, producer runtim
 // DeleteResourceNotFoundCode is the HTTP code returned for type DeleteResourceNotFound
 const DeleteResourceNotFoundCode int = 404
 
-/*DeleteResourceNotFound Not Found
+/*
+DeleteResourceNotFound Not Found
 
 swagger:response deleteResourceNotFound
 */
@@ -84,7 +86,8 @@ func (o *DeleteResourceNotFound) WriteResponse(rw http.ResponseWriter, producer 
 // DeleteResourceInternalServerErrorCode is the HTTP code returned for type DeleteResourceInternalServerError
 const DeleteResourceInternalServerErrorCode int = 500
 
-/*DeleteResourceInternalServerError Internal Server Error
+/*
+DeleteResourceInternalServerError Internal Server Error
 
 swagger:response deleteResourceInternalServerError
 */

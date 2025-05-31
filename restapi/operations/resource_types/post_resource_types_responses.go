@@ -16,7 +16,8 @@ import (
 // PostResourceTypesCreatedCode is the HTTP code returned for type PostResourceTypesCreated
 const PostResourceTypesCreatedCode int = 201
 
-/*PostResourceTypesCreated Created
+/*
+PostResourceTypesCreated Created
 
 swagger:response postResourceTypesCreated
 */
@@ -60,7 +61,8 @@ func (o *PostResourceTypesCreated) WriteResponse(rw http.ResponseWriter, produce
 // PostResourceTypesBadRequestCode is the HTTP code returned for type PostResourceTypesBadRequest
 const PostResourceTypesBadRequestCode int = 400
 
-/*PostResourceTypesBadRequest Bad Request
+/*
+PostResourceTypesBadRequest Bad Request
 
 swagger:response postResourceTypesBadRequest
 */
@@ -104,7 +106,8 @@ func (o *PostResourceTypesBadRequest) WriteResponse(rw http.ResponseWriter, prod
 // PostResourceTypesInternalServerErrorCode is the HTTP code returned for type PostResourceTypesInternalServerError
 const PostResourceTypesInternalServerErrorCode int = 500
 
-/*PostResourceTypesInternalServerError Internal Server Error
+/*
+PostResourceTypesInternalServerError Internal Server Error
 
 swagger:response postResourceTypesInternalServerError
 */

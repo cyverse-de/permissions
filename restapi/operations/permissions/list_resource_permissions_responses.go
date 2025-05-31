@@ -16,7 +16,8 @@ import (
 // ListResourcePermissionsOKCode is the HTTP code returned for type ListResourcePermissionsOK
 const ListResourcePermissionsOKCode int = 200
 
-/*ListResourcePermissionsOK OK
+/*
+ListResourcePermissionsOK OK
 
 swagger:response listResourcePermissionsOK
 */
@@ -60,7 +61,8 @@ func (o *ListResourcePermissionsOK) WriteResponse(rw http.ResponseWriter, produc
 // ListResourcePermissionsInternalServerErrorCode is the HTTP code returned for type ListResourcePermissionsInternalServerError
 const ListResourcePermissionsInternalServerErrorCode int = 500
 
-/*ListResourcePermissionsInternalServerError Internal Server Error
+/*
+ListResourcePermissionsInternalServerError Internal Server Error
 
 swagger:response listResourcePermissionsInternalServerError
 */

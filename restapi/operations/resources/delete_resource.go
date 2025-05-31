@@ -29,12 +29,12 @@ func NewDeleteResource(ctx *middleware.Context, handler DeleteResourceHandler) *
 	return &DeleteResource{Context: ctx, Handler: handler}
 }
 
-/* DeleteResource swagger:route DELETE /resources/{id} resources deleteResource
+/*
+	DeleteResource swagger:route DELETE /resources/{id} resources deleteResource
 
-Delete a Resource
+# Delete a Resource
 
 Removes a resource from the database.
-
 */
 type DeleteResource struct {
 	Context *middleware.Context

@@ -16,7 +16,8 @@ import (
 // AddResourceCreatedCode is the HTTP code returned for type AddResourceCreated
 const AddResourceCreatedCode int = 201
 
-/*AddResourceCreated Created
+/*
+AddResourceCreated Created
 
 swagger:response addResourceCreated
 */
@@ -60,7 +61,8 @@ func (o *AddResourceCreated) WriteResponse(rw http.ResponseWriter, producer runt
 // AddResourceBadRequestCode is the HTTP code returned for type AddResourceBadRequest
 const AddResourceBadRequestCode int = 400
 
-/*AddResourceBadRequest Bad Request
+/*
+AddResourceBadRequest Bad Request
 
 swagger:response addResourceBadRequest
 */
@@ -104,7 +106,8 @@ func (o *AddResourceBadRequest) WriteResponse(rw http.ResponseWriter, producer r
 // AddResourceInternalServerErrorCode is the HTTP code returned for type AddResourceInternalServerError
 const AddResourceInternalServerErrorCode int = 500
 
-/*AddResourceInternalServerError Internal Server Error
+/*
+AddResourceInternalServerError Internal Server Error
 
 swagger:response addResourceInternalServerError
 */

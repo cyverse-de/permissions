@@ -29,12 +29,12 @@ func NewDeleteResourceTypeByName(ctx *middleware.Context, handler DeleteResource
 	return &DeleteResourceTypeByName{Context: ctx, Handler: handler}
 }
 
-/* DeleteResourceTypeByName swagger:route DELETE /resource_types resource_types deleteResourceTypeByName
+/*
+	DeleteResourceTypeByName swagger:route DELETE /resource_types resource_types deleteResourceTypeByName
 
-Delete a Resource Type by Name
+# Delete a Resource Type by Name
 
 Deletes the resource type with the given name.
-
 */
 type DeleteResourceTypeByName struct {
 	Context *middleware.Context

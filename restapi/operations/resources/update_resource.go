@@ -29,12 +29,12 @@ func NewUpdateResource(ctx *middleware.Context, handler UpdateResourceHandler) *
 	return &UpdateResource{Context: ctx, Handler: handler}
 }
 
-/* UpdateResource swagger:route PUT /resources/{id} resources updateResource
+/*
+	UpdateResource swagger:route PUT /resources/{id} resources updateResource
 
-Update a Resource
+# Update a Resource
 
 Updates a resource in the database.
-
 */
 type UpdateResource struct {
 	Context *middleware.Context

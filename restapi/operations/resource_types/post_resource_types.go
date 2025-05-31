@@ -29,12 +29,12 @@ func NewPostResourceTypes(ctx *middleware.Context, handler PostResourceTypesHand
 	return &PostResourceTypes{Context: ctx, Handler: handler}
 }
 
-/* PostResourceTypes swagger:route POST /resource_types resource_types postResourceTypes
+/*
+	PostResourceTypes swagger:route POST /resource_types resource_types postResourceTypes
 
-Add a Resource Type
+# Add a Resource Type
 
 Adds a resource type to the list of available resource types. The name of the resource type must be unique.
-
 */
 type PostResourceTypes struct {
 	Context *middleware.Context
