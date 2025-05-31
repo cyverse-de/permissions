@@ -16,7 +16,8 @@ import (
 // CopyPermissionsOKCode is the HTTP code returned for type CopyPermissionsOK
 const CopyPermissionsOKCode int = 200
 
-/*CopyPermissionsOK OK
+/*
+CopyPermissionsOK OK
 
 swagger:response copyPermissionsOK
 */
@@ -40,7 +41,8 @@ func (o *CopyPermissionsOK) WriteResponse(rw http.ResponseWriter, producer runti
 // CopyPermissionsBadRequestCode is the HTTP code returned for type CopyPermissionsBadRequest
 const CopyPermissionsBadRequestCode int = 400
 
-/*CopyPermissionsBadRequest Bad Request
+/*
+CopyPermissionsBadRequest Bad Request
 
 swagger:response copyPermissionsBadRequest
 */
@@ -84,7 +86,8 @@ func (o *CopyPermissionsBadRequest) WriteResponse(rw http.ResponseWriter, produc
 // CopyPermissionsInternalServerErrorCode is the HTTP code returned for type CopyPermissionsInternalServerError
 const CopyPermissionsInternalServerErrorCode int = 500
 
-/*CopyPermissionsInternalServerError Internal Server Error
+/*
+CopyPermissionsInternalServerError Internal Server Error
 
 swagger:response copyPermissionsInternalServerError
 */

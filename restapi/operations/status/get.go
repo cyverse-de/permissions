@@ -29,12 +29,12 @@ func NewGet(ctx *middleware.Context, handler GetHandler) *Get {
 	return &Get{Context: ctx, Handler: handler}
 }
 
-/* Get swagger:route GET / status get
+/*
+	Get swagger:route GET / status get
 
-Service Status Information
+# Service Status Information
 
 Displays general information about the service and can be used to determine whether or not the service is running.
-
 */
 type Get struct {
 	Context *middleware.Context

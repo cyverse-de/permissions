@@ -16,7 +16,8 @@ import (
 // BySubjectAndResourceTypeOKCode is the HTTP code returned for type BySubjectAndResourceTypeOK
 const BySubjectAndResourceTypeOKCode int = 200
 
-/*BySubjectAndResourceTypeOK OK
+/*
+BySubjectAndResourceTypeOK OK
 
 swagger:response bySubjectAndResourceTypeOK
 */
@@ -60,7 +61,8 @@ func (o *BySubjectAndResourceTypeOK) WriteResponse(rw http.ResponseWriter, produ
 // BySubjectAndResourceTypeBadRequestCode is the HTTP code returned for type BySubjectAndResourceTypeBadRequest
 const BySubjectAndResourceTypeBadRequestCode int = 400
 
-/*BySubjectAndResourceTypeBadRequest Bad Request
+/*
+BySubjectAndResourceTypeBadRequest Bad Request
 
 swagger:response bySubjectAndResourceTypeBadRequest
 */
@@ -104,7 +106,8 @@ func (o *BySubjectAndResourceTypeBadRequest) WriteResponse(rw http.ResponseWrite
 // BySubjectAndResourceTypeInternalServerErrorCode is the HTTP code returned for type BySubjectAndResourceTypeInternalServerError
 const BySubjectAndResourceTypeInternalServerErrorCode int = 500
 
-/*BySubjectAndResourceTypeInternalServerError Internal Server Error
+/*
+BySubjectAndResourceTypeInternalServerError Internal Server Error
 
 swagger:response bySubjectAndResourceTypeInternalServerError
 */

@@ -16,7 +16,8 @@ import (
 // DeleteSubjectByExternalIDOKCode is the HTTP code returned for type DeleteSubjectByExternalIDOK
 const DeleteSubjectByExternalIDOKCode int = 200
 
-/*DeleteSubjectByExternalIDOK OK
+/*
+DeleteSubjectByExternalIDOK OK
 
 swagger:response deleteSubjectByExternalIdOK
 */
@@ -40,7 +41,8 @@ func (o *DeleteSubjectByExternalIDOK) WriteResponse(rw http.ResponseWriter, prod
 // DeleteSubjectByExternalIDNotFoundCode is the HTTP code returned for type DeleteSubjectByExternalIDNotFound
 const DeleteSubjectByExternalIDNotFoundCode int = 404
 
-/*DeleteSubjectByExternalIDNotFound Not Found
+/*
+DeleteSubjectByExternalIDNotFound Not Found
 
 swagger:response deleteSubjectByExternalIdNotFound
 */
@@ -84,7 +86,8 @@ func (o *DeleteSubjectByExternalIDNotFound) WriteResponse(rw http.ResponseWriter
 // DeleteSubjectByExternalIDInternalServerErrorCode is the HTTP code returned for type DeleteSubjectByExternalIDInternalServerError
 const DeleteSubjectByExternalIDInternalServerErrorCode int = 500
 
-/*DeleteSubjectByExternalIDInternalServerError Internal Server Error
+/*
+DeleteSubjectByExternalIDInternalServerError Internal Server Error
 
 swagger:response deleteSubjectByExternalIdInternalServerError
 */

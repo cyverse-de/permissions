@@ -76,6 +76,8 @@ func (m *Permission) validateID(formats strfmt.Registry) error {
 		if err := m.ID.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("id")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("id")
 			}
 			return err
 		}
@@ -98,6 +100,8 @@ func (m *Permission) validatePermissionLevel(formats strfmt.Registry) error {
 		if err := m.PermissionLevel.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("permission_level")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("permission_level")
 			}
 			return err
 		}
@@ -116,6 +120,8 @@ func (m *Permission) validateResource(formats strfmt.Registry) error {
 		if err := m.Resource.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("resource")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("resource")
 			}
 			return err
 		}
@@ -134,6 +140,8 @@ func (m *Permission) validateSubject(formats strfmt.Registry) error {
 		if err := m.Subject.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject")
 			}
 			return err
 		}
@@ -171,9 +179,12 @@ func (m *Permission) ContextValidate(ctx context.Context, formats strfmt.Registr
 func (m *Permission) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.ID != nil {
+
 		if err := m.ID.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("id")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("id")
 			}
 			return err
 		}
@@ -185,9 +196,12 @@ func (m *Permission) contextValidateID(ctx context.Context, formats strfmt.Regis
 func (m *Permission) contextValidatePermissionLevel(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.PermissionLevel != nil {
+
 		if err := m.PermissionLevel.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("permission_level")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("permission_level")
 			}
 			return err
 		}
@@ -199,9 +213,12 @@ func (m *Permission) contextValidatePermissionLevel(ctx context.Context, formats
 func (m *Permission) contextValidateResource(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Resource != nil {
+
 		if err := m.Resource.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("resource")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("resource")
 			}
 			return err
 		}
@@ -213,9 +230,12 @@ func (m *Permission) contextValidateResource(ctx context.Context, formats strfmt
 func (m *Permission) contextValidateSubject(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Subject != nil {
+
 		if err := m.Subject.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject")
 			}
 			return err
 		}

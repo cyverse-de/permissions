@@ -16,7 +16,8 @@ import (
 // GetResourceTypesOKCode is the HTTP code returned for type GetResourceTypesOK
 const GetResourceTypesOKCode int = 200
 
-/*GetResourceTypesOK Success
+/*
+GetResourceTypesOK Success
 
 swagger:response getResourceTypesOK
 */
@@ -60,7 +61,8 @@ func (o *GetResourceTypesOK) WriteResponse(rw http.ResponseWriter, producer runt
 // GetResourceTypesInternalServerErrorCode is the HTTP code returned for type GetResourceTypesInternalServerError
 const GetResourceTypesInternalServerErrorCode int = 500
 
-/*GetResourceTypesInternalServerError Internal Server Error
+/*
+GetResourceTypesInternalServerError Internal Server Error
 
 swagger:response getResourceTypesInternalServerError
 */

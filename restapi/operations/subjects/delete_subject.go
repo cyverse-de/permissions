@@ -29,12 +29,12 @@ func NewDeleteSubject(ctx *middleware.Context, handler DeleteSubjectHandler) *De
 	return &DeleteSubject{Context: ctx, Handler: handler}
 }
 
-/* DeleteSubject swagger:route DELETE /subjects/{id} subjects deleteSubject
+/*
+	DeleteSubject swagger:route DELETE /subjects/{id} subjects deleteSubject
 
-Delete a Subject
+# Delete a Subject
 
 Deletes a subject from the database.
-
 */
 type DeleteSubject struct {
 	Context *middleware.Context

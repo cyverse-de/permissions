@@ -29,12 +29,12 @@ func NewListResourcePermissions(ctx *middleware.Context, handler ListResourcePer
 	return &ListResourcePermissions{Context: ctx, Handler: handler}
 }
 
-/* ListResourcePermissions swagger:route GET /permissions/resources/{resource_type}/{resource_name} permissions listResourcePermissions
+/*
+	ListResourcePermissions swagger:route GET /permissions/resources/{resource_type}/{resource_name} permissions listResourcePermissions
 
-List Resource Permissions
+# List Resource Permissions
 
 Lists all of the permissions associated with a resource.
-
 */
 type ListResourcePermissions struct {
 	Context *middleware.Context

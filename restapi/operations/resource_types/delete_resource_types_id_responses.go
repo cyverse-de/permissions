@@ -16,7 +16,8 @@ import (
 // DeleteResourceTypesIDOKCode is the HTTP code returned for type DeleteResourceTypesIDOK
 const DeleteResourceTypesIDOKCode int = 200
 
-/*DeleteResourceTypesIDOK Deleted
+/*
+DeleteResourceTypesIDOK Deleted
 
 swagger:response deleteResourceTypesIdOK
 */
@@ -40,7 +41,8 @@ func (o *DeleteResourceTypesIDOK) WriteResponse(rw http.ResponseWriter, producer
 // DeleteResourceTypesIDBadRequestCode is the HTTP code returned for type DeleteResourceTypesIDBadRequest
 const DeleteResourceTypesIDBadRequestCode int = 400
 
-/*DeleteResourceTypesIDBadRequest Bad Request
+/*
+DeleteResourceTypesIDBadRequest Bad Request
 
 swagger:response deleteResourceTypesIdBadRequest
 */
@@ -84,7 +86,8 @@ func (o *DeleteResourceTypesIDBadRequest) WriteResponse(rw http.ResponseWriter, 
 // DeleteResourceTypesIDNotFoundCode is the HTTP code returned for type DeleteResourceTypesIDNotFound
 const DeleteResourceTypesIDNotFoundCode int = 404
 
-/*DeleteResourceTypesIDNotFound Not Found
+/*
+DeleteResourceTypesIDNotFound Not Found
 
 swagger:response deleteResourceTypesIdNotFound
 */
@@ -128,7 +131,8 @@ func (o *DeleteResourceTypesIDNotFound) WriteResponse(rw http.ResponseWriter, pr
 // DeleteResourceTypesIDInternalServerErrorCode is the HTTP code returned for type DeleteResourceTypesIDInternalServerError
 const DeleteResourceTypesIDInternalServerErrorCode int = 500
 
-/*DeleteResourceTypesIDInternalServerError Internal Server Error
+/*
+DeleteResourceTypesIDInternalServerError Internal Server Error
 
 swagger:response deleteResourceTypesIdInternalServerError
 */

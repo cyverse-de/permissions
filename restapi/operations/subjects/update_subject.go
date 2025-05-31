@@ -29,12 +29,12 @@ func NewUpdateSubject(ctx *middleware.Context, handler UpdateSubjectHandler) *Up
 	return &UpdateSubject{Context: ctx, Handler: handler}
 }
 
-/* UpdateSubject swagger:route PUT /subjects/{id} subjects updateSubject
+/*
+	UpdateSubject swagger:route PUT /subjects/{id} subjects updateSubject
 
-Update a Subject
+# Update a Subject
 
 Updates a subject in the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.
-
 */
 type UpdateSubject struct {
 	Context *middleware.Context

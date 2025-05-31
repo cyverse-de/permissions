@@ -29,12 +29,12 @@ func NewAddResource(ctx *middleware.Context, handler AddResourceHandler) *AddRes
 	return &AddResource{Context: ctx, Handler: handler}
 }
 
-/* AddResource swagger:route POST /resources resources addResource
+/*
+	AddResource swagger:route POST /resources resources addResource
 
-Add a Resource
+# Add a Resource
 
 Adds a resource to the database. A resource is a single item to which permissions may be applied. For example The Discovery Environment app, Word Count, would be defined as a resource in the permissions service.
-
 */
 type AddResource struct {
 	Context *middleware.Context

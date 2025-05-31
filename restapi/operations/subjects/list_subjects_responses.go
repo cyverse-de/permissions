@@ -16,7 +16,8 @@ import (
 // ListSubjectsOKCode is the HTTP code returned for type ListSubjectsOK
 const ListSubjectsOKCode int = 200
 
-/*ListSubjectsOK OK
+/*
+ListSubjectsOK OK
 
 swagger:response listSubjectsOK
 */
@@ -60,7 +61,8 @@ func (o *ListSubjectsOK) WriteResponse(rw http.ResponseWriter, producer runtime.
 // ListSubjectsInternalServerErrorCode is the HTTP code returned for type ListSubjectsInternalServerError
 const ListSubjectsInternalServerErrorCode int = 500
 
-/*ListSubjectsInternalServerError Internal Server Error
+/*
+ListSubjectsInternalServerError Internal Server Error
 
 swagger:response listSubjectsInternalServerError
 */

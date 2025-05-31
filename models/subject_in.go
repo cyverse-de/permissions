@@ -60,6 +60,8 @@ func (m *SubjectIn) validateSubjectID(formats strfmt.Registry) error {
 		if err := m.SubjectID.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject_id")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject_id")
 			}
 			return err
 		}
@@ -82,6 +84,8 @@ func (m *SubjectIn) validateSubjectType(formats strfmt.Registry) error {
 		if err := m.SubjectType.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject_type")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject_type")
 			}
 			return err
 		}
@@ -111,9 +115,12 @@ func (m *SubjectIn) ContextValidate(ctx context.Context, formats strfmt.Registry
 func (m *SubjectIn) contextValidateSubjectID(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.SubjectID != nil {
+
 		if err := m.SubjectID.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject_id")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject_id")
 			}
 			return err
 		}
@@ -125,9 +132,12 @@ func (m *SubjectIn) contextValidateSubjectID(ctx context.Context, formats strfmt
 func (m *SubjectIn) contextValidateSubjectType(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.SubjectType != nil {
+
 		if err := m.SubjectType.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject_type")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject_type")
 			}
 			return err
 		}

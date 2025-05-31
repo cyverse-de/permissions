@@ -16,7 +16,8 @@ import (
 // DeleteSubjectOKCode is the HTTP code returned for type DeleteSubjectOK
 const DeleteSubjectOKCode int = 200
 
-/*DeleteSubjectOK OK
+/*
+DeleteSubjectOK OK
 
 swagger:response deleteSubjectOK
 */
@@ -40,7 +41,8 @@ func (o *DeleteSubjectOK) WriteResponse(rw http.ResponseWriter, producer runtime
 // DeleteSubjectNotFoundCode is the HTTP code returned for type DeleteSubjectNotFound
 const DeleteSubjectNotFoundCode int = 404
 
-/*DeleteSubjectNotFound Not Found
+/*
+DeleteSubjectNotFound Not Found
 
 swagger:response deleteSubjectNotFound
 */
@@ -84,7 +86,8 @@ func (o *DeleteSubjectNotFound) WriteResponse(rw http.ResponseWriter, producer r
 // DeleteSubjectInternalServerErrorCode is the HTTP code returned for type DeleteSubjectInternalServerError
 const DeleteSubjectInternalServerErrorCode int = 500
 
-/*DeleteSubjectInternalServerError Internal Server Error
+/*
+DeleteSubjectInternalServerError Internal Server Error
 
 swagger:response deleteSubjectInternalServerError
 */

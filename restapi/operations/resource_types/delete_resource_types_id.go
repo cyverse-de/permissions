@@ -29,12 +29,12 @@ func NewDeleteResourceTypesID(ctx *middleware.Context, handler DeleteResourceTyp
 	return &DeleteResourceTypesID{Context: ctx, Handler: handler}
 }
 
-/* DeleteResourceTypesID swagger:route DELETE /resource_types/{id} resource_types deleteResourceTypesId
+/*
+	DeleteResourceTypesID swagger:route DELETE /resource_types/{id} resource_types deleteResourceTypesId
 
-Delete a Resource Type
+# Delete a Resource Type
 
 Removes a resource type from the database. A resource type may only be removed if there are no resources associated with it.
-
 */
 type DeleteResourceTypesID struct {
 	Context *middleware.Context

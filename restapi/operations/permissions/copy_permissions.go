@@ -29,12 +29,12 @@ func NewCopyPermissions(ctx *middleware.Context, handler CopyPermissionsHandler)
 	return &CopyPermissions{Context: ctx, Handler: handler}
 }
 
-/* CopyPermissions swagger:route POST /permissions/subjects/{subject_type}/{subject_id}/copy permissions copyPermissions
+/*
+	CopyPermissions swagger:route POST /permissions/subjects/{subject_type}/{subject_id}/copy permissions copyPermissions
 
-Copy Permissions Between Subjects
+# Copy Permissions Between Subjects
 
 Copies all permissions that have been granted to one subject to one or more other subjects. Only permissions that are assigned directly to the source subject are copied. Permissions that are granted to groups that the source subject belongs to are not copied.
-
 */
 type CopyPermissions struct {
 	Context *middleware.Context

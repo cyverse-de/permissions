@@ -68,6 +68,8 @@ func (m *PermissionGrantRequest) validatePermissionLevel(formats strfmt.Registry
 		if err := m.PermissionLevel.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("permission_level")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("permission_level")
 			}
 			return err
 		}
@@ -86,6 +88,8 @@ func (m *PermissionGrantRequest) validateResource(formats strfmt.Registry) error
 		if err := m.Resource.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("resource")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("resource")
 			}
 			return err
 		}
@@ -104,6 +108,8 @@ func (m *PermissionGrantRequest) validateSubject(formats strfmt.Registry) error 
 		if err := m.Subject.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject")
 			}
 			return err
 		}
@@ -137,9 +143,12 @@ func (m *PermissionGrantRequest) ContextValidate(ctx context.Context, formats st
 func (m *PermissionGrantRequest) contextValidatePermissionLevel(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.PermissionLevel != nil {
+
 		if err := m.PermissionLevel.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("permission_level")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("permission_level")
 			}
 			return err
 		}
@@ -151,9 +160,12 @@ func (m *PermissionGrantRequest) contextValidatePermissionLevel(ctx context.Cont
 func (m *PermissionGrantRequest) contextValidateResource(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Resource != nil {
+
 		if err := m.Resource.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("resource")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("resource")
 			}
 			return err
 		}
@@ -165,9 +177,12 @@ func (m *PermissionGrantRequest) contextValidateResource(ctx context.Context, fo
 func (m *PermissionGrantRequest) contextValidateSubject(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Subject != nil {
+
 		if err := m.Subject.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("subject")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("subject")
 			}
 			return err
 		}

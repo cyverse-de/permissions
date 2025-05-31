@@ -16,7 +16,8 @@ import (
 // ListPermissionsOKCode is the HTTP code returned for type ListPermissionsOK
 const ListPermissionsOKCode int = 200
 
-/*ListPermissionsOK OK
+/*
+ListPermissionsOK OK
 
 swagger:response listPermissionsOK
 */
@@ -60,7 +61,8 @@ func (o *ListPermissionsOK) WriteResponse(rw http.ResponseWriter, producer runti
 // ListPermissionsInternalServerErrorCode is the HTTP code returned for type ListPermissionsInternalServerError
 const ListPermissionsInternalServerErrorCode int = 500
 
-/*ListPermissionsInternalServerError Internal Server Error
+/*
+ListPermissionsInternalServerError Internal Server Error
 
 swagger:response listPermissionsInternalServerError
 */

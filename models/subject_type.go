@@ -20,8 +20,12 @@ import (
 type SubjectType string
 
 func NewSubjectType(value SubjectType) *SubjectType {
-	v := value
-	return &v
+	return &value
+}
+
+// Pointer returns a pointer to a freshly-allocated SubjectType.
+func (m SubjectType) Pointer() *SubjectType {
+	return &m
 }
 
 const (
