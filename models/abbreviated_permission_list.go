@@ -54,6 +54,8 @@ func (m *AbbreviatedPermissionList) validatePermissions(formats strfmt.Registry)
 			if err := m.Permissions[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("permissions" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("permissions" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -83,9 +85,16 @@ func (m *AbbreviatedPermissionList) contextValidatePermissions(ctx context.Conte
 	for i := 0; i < len(m.Permissions); i++ {
 
 		if m.Permissions[i] != nil {
+
+			if swag.IsZero(m.Permissions[i]) { // not required
+				return nil
+			}
+
 			if err := m.Permissions[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("permissions" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("permissions" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

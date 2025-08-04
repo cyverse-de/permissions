@@ -16,7 +16,8 @@ import (
 // GrantPermissionOKCode is the HTTP code returned for type GrantPermissionOK
 const GrantPermissionOKCode int = 200
 
-/*GrantPermissionOK Created
+/*
+GrantPermissionOK Created
 
 swagger:response grantPermissionOK
 */
@@ -60,7 +61,8 @@ func (o *GrantPermissionOK) WriteResponse(rw http.ResponseWriter, producer runti
 // GrantPermissionBadRequestCode is the HTTP code returned for type GrantPermissionBadRequest
 const GrantPermissionBadRequestCode int = 400
 
-/*GrantPermissionBadRequest Bad Request
+/*
+GrantPermissionBadRequest Bad Request
 
 swagger:response grantPermissionBadRequest
 */
@@ -104,7 +106,8 @@ func (o *GrantPermissionBadRequest) WriteResponse(rw http.ResponseWriter, produc
 // GrantPermissionInternalServerErrorCode is the HTTP code returned for type GrantPermissionInternalServerError
 const GrantPermissionInternalServerErrorCode int = 500
 
-/*GrantPermissionInternalServerError Internal Server Error
+/*
+GrantPermissionInternalServerError Internal Server Error
 
 swagger:response grantPermissionInternalServerError
 */

@@ -1,6 +1,4 @@
-FROM golang:1.21-alpine
-
-RUN apk add --no-cache git
+FROM golang:1.24
 
 COPY . /permissions/
 WORKDIR /permissions/

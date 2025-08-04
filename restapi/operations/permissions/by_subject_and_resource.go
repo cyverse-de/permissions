@@ -29,12 +29,12 @@ func NewBySubjectAndResource(ctx *middleware.Context, handler BySubjectAndResour
 	return &BySubjectAndResource{Context: ctx, Handler: handler}
 }
 
-/* BySubjectAndResource swagger:route GET /permissions/subjects/{subject_type}/{subject_id}/{resource_type}/{resource_name} permissions bySubjectAndResource
+/*
+	BySubjectAndResource swagger:route GET /permissions/subjects/{subject_type}/{subject_id}/{resource_type}/{resource_name} permissions bySubjectAndResource
 
-Look Up by Subject and Resource
+# Look Up by Subject and Resource
 
 Looks up  permissions granted to a subject for a resource. If lookup mode is enabled and the subject is a user, the most lenient permission granted to the subject or any groups the subject belongs to will be listed. If lookup mode is not enabled or the subject is a group then only permissions assigned directly to the subject will be listed. This endpoint will currently list at most one permission, but the permission list format was chosen in favor of returning a 404 status if a permission does not exist because this endpoint may be called frequently when no corresponding permissions exist. This endpoint will return an error status if the subject ID is in use and associated with a different subject type.
-
 */
 type BySubjectAndResource struct {
 	Context *middleware.Context

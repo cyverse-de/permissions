@@ -29,12 +29,12 @@ func NewListSubjects(ctx *middleware.Context, handler ListSubjectsHandler) *List
 	return &ListSubjects{Context: ctx, Handler: handler}
 }
 
-/* ListSubjects swagger:route GET /subjects subjects listSubjects
+/*
+	ListSubjects swagger:route GET /subjects subjects listSubjects
 
-List Subjects
+# List Subjects
 
 Lists subjects (entities to which permissions may be gratned) that exist in the database.
-
 */
 type ListSubjects struct {
 	Context *middleware.Context

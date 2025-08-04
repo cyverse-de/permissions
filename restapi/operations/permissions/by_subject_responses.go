@@ -16,7 +16,8 @@ import (
 // BySubjectOKCode is the HTTP code returned for type BySubjectOK
 const BySubjectOKCode int = 200
 
-/*BySubjectOK OK
+/*
+BySubjectOK OK
 
 swagger:response bySubjectOK
 */
@@ -60,7 +61,8 @@ func (o *BySubjectOK) WriteResponse(rw http.ResponseWriter, producer runtime.Pro
 // BySubjectBadRequestCode is the HTTP code returned for type BySubjectBadRequest
 const BySubjectBadRequestCode int = 400
 
-/*BySubjectBadRequest Bad Request
+/*
+BySubjectBadRequest Bad Request
 
 swagger:response bySubjectBadRequest
 */
@@ -104,7 +106,8 @@ func (o *BySubjectBadRequest) WriteResponse(rw http.ResponseWriter, producer run
 // BySubjectInternalServerErrorCode is the HTTP code returned for type BySubjectInternalServerError
 const BySubjectInternalServerErrorCode int = 500
 
-/*BySubjectInternalServerError Internal Server Error
+/*
+BySubjectInternalServerError Internal Server Error
 
 swagger:response bySubjectInternalServerError
 */

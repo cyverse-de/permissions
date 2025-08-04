@@ -52,6 +52,8 @@ func (m *PermissionPutRequest) validatePermissionLevel(formats strfmt.Registry) 
 		if err := m.PermissionLevel.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("permission_level")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("permission_level")
 			}
 			return err
 		}
@@ -77,9 +79,12 @@ func (m *PermissionPutRequest) ContextValidate(ctx context.Context, formats strf
 func (m *PermissionPutRequest) contextValidatePermissionLevel(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.PermissionLevel != nil {
+
 		if err := m.PermissionLevel.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("permission_level")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("permission_level")
 			}
 			return err
 		}

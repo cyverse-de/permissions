@@ -16,7 +16,8 @@ import (
 // PutResourceTypesIDOKCode is the HTTP code returned for type PutResourceTypesIDOK
 const PutResourceTypesIDOKCode int = 200
 
-/*PutResourceTypesIDOK Updated
+/*
+PutResourceTypesIDOK Updated
 
 swagger:response putResourceTypesIdOK
 */
@@ -60,7 +61,8 @@ func (o *PutResourceTypesIDOK) WriteResponse(rw http.ResponseWriter, producer ru
 // PutResourceTypesIDBadRequestCode is the HTTP code returned for type PutResourceTypesIDBadRequest
 const PutResourceTypesIDBadRequestCode int = 400
 
-/*PutResourceTypesIDBadRequest Bad Request
+/*
+PutResourceTypesIDBadRequest Bad Request
 
 swagger:response putResourceTypesIdBadRequest
 */
@@ -104,7 +106,8 @@ func (o *PutResourceTypesIDBadRequest) WriteResponse(rw http.ResponseWriter, pro
 // PutResourceTypesIDNotFoundCode is the HTTP code returned for type PutResourceTypesIDNotFound
 const PutResourceTypesIDNotFoundCode int = 404
 
-/*PutResourceTypesIDNotFound Not Found
+/*
+PutResourceTypesIDNotFound Not Found
 
 swagger:response putResourceTypesIdNotFound
 */
@@ -148,7 +151,8 @@ func (o *PutResourceTypesIDNotFound) WriteResponse(rw http.ResponseWriter, produ
 // PutResourceTypesIDInternalServerErrorCode is the HTTP code returned for type PutResourceTypesIDInternalServerError
 const PutResourceTypesIDInternalServerErrorCode int = 500
 
-/*PutResourceTypesIDInternalServerError Internal Server Error
+/*
+PutResourceTypesIDInternalServerError Internal Server Error
 
 swagger:response putResourceTypesIdInternalServerError
 */

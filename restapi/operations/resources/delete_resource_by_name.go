@@ -29,12 +29,12 @@ func NewDeleteResourceByName(ctx *middleware.Context, handler DeleteResourceByNa
 	return &DeleteResourceByName{Context: ctx, Handler: handler}
 }
 
-/* DeleteResourceByName swagger:route DELETE /resources resources deleteResourceByName
+/*
+	DeleteResourceByName swagger:route DELETE /resources resources deleteResourceByName
 
-Delete Resources by Name
+# Delete Resources by Name
 
 Removes a resource from the database. A resource is a single item to which permissions may be applied. For example. The Discovery Environment app, Word Count, would be defined as a resource in the permissions service.
-
 */
 type DeleteResourceByName struct {
 	Context *middleware.Context

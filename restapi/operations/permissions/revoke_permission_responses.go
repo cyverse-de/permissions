@@ -16,7 +16,8 @@ import (
 // RevokePermissionOKCode is the HTTP code returned for type RevokePermissionOK
 const RevokePermissionOKCode int = 200
 
-/*RevokePermissionOK OK
+/*
+RevokePermissionOK OK
 
 swagger:response revokePermissionOK
 */
@@ -40,7 +41,8 @@ func (o *RevokePermissionOK) WriteResponse(rw http.ResponseWriter, producer runt
 // RevokePermissionNotFoundCode is the HTTP code returned for type RevokePermissionNotFound
 const RevokePermissionNotFoundCode int = 404
 
-/*RevokePermissionNotFound Not Found
+/*
+RevokePermissionNotFound Not Found
 
 swagger:response revokePermissionNotFound
 */
@@ -84,7 +86,8 @@ func (o *RevokePermissionNotFound) WriteResponse(rw http.ResponseWriter, produce
 // RevokePermissionInternalServerErrorCode is the HTTP code returned for type RevokePermissionInternalServerError
 const RevokePermissionInternalServerErrorCode int = 500
 
-/*RevokePermissionInternalServerError Internal Server Error
+/*
+RevokePermissionInternalServerError Internal Server Error
 
 swagger:response revokePermissionInternalServerError
 */

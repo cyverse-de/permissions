@@ -16,7 +16,8 @@ import (
 // UpdateSubjectOKCode is the HTTP code returned for type UpdateSubjectOK
 const UpdateSubjectOKCode int = 200
 
-/*UpdateSubjectOK OK
+/*
+UpdateSubjectOK OK
 
 swagger:response updateSubjectOK
 */
@@ -60,7 +61,8 @@ func (o *UpdateSubjectOK) WriteResponse(rw http.ResponseWriter, producer runtime
 // UpdateSubjectBadRequestCode is the HTTP code returned for type UpdateSubjectBadRequest
 const UpdateSubjectBadRequestCode int = 400
 
-/*UpdateSubjectBadRequest Bad Request
+/*
+UpdateSubjectBadRequest Bad Request
 
 swagger:response updateSubjectBadRequest
 */
@@ -104,7 +106,8 @@ func (o *UpdateSubjectBadRequest) WriteResponse(rw http.ResponseWriter, producer
 // UpdateSubjectNotFoundCode is the HTTP code returned for type UpdateSubjectNotFound
 const UpdateSubjectNotFoundCode int = 404
 
-/*UpdateSubjectNotFound Not Found
+/*
+UpdateSubjectNotFound Not Found
 
 swagger:response updateSubjectNotFound
 */
@@ -148,7 +151,8 @@ func (o *UpdateSubjectNotFound) WriteResponse(rw http.ResponseWriter, producer r
 // UpdateSubjectInternalServerErrorCode is the HTTP code returned for type UpdateSubjectInternalServerError
 const UpdateSubjectInternalServerErrorCode int = 500
 
-/*UpdateSubjectInternalServerError Internal Server Error
+/*
+UpdateSubjectInternalServerError Internal Server Error
 
 swagger:response updateSubjectInternalServerError
 */

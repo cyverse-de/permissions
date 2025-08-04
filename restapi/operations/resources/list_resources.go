@@ -29,12 +29,12 @@ func NewListResources(ctx *middleware.Context, handler ListResourcesHandler) *Li
 	return &ListResources{Context: ctx, Handler: handler}
 }
 
-/* ListResources swagger:route GET /resources resources listResources
+/*
+	ListResources swagger:route GET /resources resources listResources
 
-List Resources
+# List Resources
 
 Lists resources in the database. A resource is a single item to which permissions may be applied. For example The Discovery Environment app, Word Count, would be defined as a resource in the permissions service.
-
 */
 type ListResources struct {
 	Context *middleware.Context

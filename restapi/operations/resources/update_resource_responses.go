@@ -16,7 +16,8 @@ import (
 // UpdateResourceOKCode is the HTTP code returned for type UpdateResourceOK
 const UpdateResourceOKCode int = 200
 
-/*UpdateResourceOK OK
+/*
+UpdateResourceOK OK
 
 swagger:response updateResourceOK
 */
@@ -60,7 +61,8 @@ func (o *UpdateResourceOK) WriteResponse(rw http.ResponseWriter, producer runtim
 // UpdateResourceBadRequestCode is the HTTP code returned for type UpdateResourceBadRequest
 const UpdateResourceBadRequestCode int = 400
 
-/*UpdateResourceBadRequest Bad Request
+/*
+UpdateResourceBadRequest Bad Request
 
 swagger:response updateResourceBadRequest
 */
@@ -104,7 +106,8 @@ func (o *UpdateResourceBadRequest) WriteResponse(rw http.ResponseWriter, produce
 // UpdateResourceNotFoundCode is the HTTP code returned for type UpdateResourceNotFound
 const UpdateResourceNotFoundCode int = 404
 
-/*UpdateResourceNotFound Not Found
+/*
+UpdateResourceNotFound Not Found
 
 swagger:response updateResourceNotFound
 */
@@ -148,7 +151,8 @@ func (o *UpdateResourceNotFound) WriteResponse(rw http.ResponseWriter, producer 
 // UpdateResourceInternalServerErrorCode is the HTTP code returned for type UpdateResourceInternalServerError
 const UpdateResourceInternalServerErrorCode int = 500
 
-/*UpdateResourceInternalServerError Internal Server Error
+/*
+UpdateResourceInternalServerError Internal Server Error
 
 swagger:response updateResourceInternalServerError
 */

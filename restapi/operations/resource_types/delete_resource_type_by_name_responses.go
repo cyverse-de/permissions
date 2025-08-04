@@ -16,7 +16,8 @@ import (
 // DeleteResourceTypeByNameOKCode is the HTTP code returned for type DeleteResourceTypeByNameOK
 const DeleteResourceTypeByNameOKCode int = 200
 
-/*DeleteResourceTypeByNameOK Deleted
+/*
+DeleteResourceTypeByNameOK Deleted
 
 swagger:response deleteResourceTypeByNameOK
 */
@@ -40,7 +41,8 @@ func (o *DeleteResourceTypeByNameOK) WriteResponse(rw http.ResponseWriter, produ
 // DeleteResourceTypeByNameBadRequestCode is the HTTP code returned for type DeleteResourceTypeByNameBadRequest
 const DeleteResourceTypeByNameBadRequestCode int = 400
 
-/*DeleteResourceTypeByNameBadRequest Bad Request
+/*
+DeleteResourceTypeByNameBadRequest Bad Request
 
 swagger:response deleteResourceTypeByNameBadRequest
 */
@@ -84,7 +86,8 @@ func (o *DeleteResourceTypeByNameBadRequest) WriteResponse(rw http.ResponseWrite
 // DeleteResourceTypeByNameNotFoundCode is the HTTP code returned for type DeleteResourceTypeByNameNotFound
 const DeleteResourceTypeByNameNotFoundCode int = 404
 
-/*DeleteResourceTypeByNameNotFound Not Found
+/*
+DeleteResourceTypeByNameNotFound Not Found
 
 swagger:response deleteResourceTypeByNameNotFound
 */
@@ -128,7 +131,8 @@ func (o *DeleteResourceTypeByNameNotFound) WriteResponse(rw http.ResponseWriter,
 // DeleteResourceTypeByNameInternalServerErrorCode is the HTTP code returned for type DeleteResourceTypeByNameInternalServerError
 const DeleteResourceTypeByNameInternalServerErrorCode int = 500
 
-/*DeleteResourceTypeByNameInternalServerError Internal Server Error
+/*
+DeleteResourceTypeByNameInternalServerError Internal Server Error
 
 swagger:response deleteResourceTypeByNameInternalServerError
 */
