@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cyverse-de/permissions/clients/grouper"
+	groupsclient "github.com/cyverse-de/permissions/clients/groups"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/restapi/operations"
 	"github.com/cyverse-de/permissions/restapi/operations/permissions"
@@ -52,6 +53,11 @@ db:
 grouperdb:
   uri: "postgresql://de:notprod@adedb:5432/grouper?sslmode=disable"
   folder_name_prefix: "iplant:de:docker-compose"
+
+groups:
+  enabled: false
+  base_uri: "http://groups"
+  user: "permissions-svc"
 `
 
 // Command line options that aren't managed by go-swagger.
@@ -82,7 +88,7 @@ func validateOptions() error {
 
 // The database connection.
 var db *sql.DB
-var grouperClient *grouper.Client
+var grouperClient grouper.Grouper
 var schema string
 var tracerCtxCancel func()
 var tracerShutdown func()
@@ -121,11 +127,18 @@ func initService() error {
 
 	schema = cfg.GetString("db.schema")
 
-	grouperDburi := cfg.GetString("grouperdb.uri")
-	grouperFolderNamePrefix := cfg.GetString("grouperdb.folder_name_prefix")
-	grouperClient, err = grouper.NewGrouperClient(grouperDburi, grouperFolderNamePrefix)
-	if err != nil {
-		return err
+	if cfg.GetBool("groups.enabled") {
+		grouperClient, err = groupsclient.NewClient(cfg.GetString("groups.base_uri"), cfg.GetString("groups.user"))
+		if err != nil {
+			return err
+		}
+	} else {
+		grouperDburi := cfg.GetString("grouperdb.uri")
+		grouperFolderNamePrefix := cfg.GetString("grouperdb.folder_name_prefix")
+		grouperClient, err = grouper.NewGrouperClient(grouperDburi, grouperFolderNamePrefix)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := db.Ping(); err != nil {

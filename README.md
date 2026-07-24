@@ -2,6 +2,16 @@
 
 This service manages permissions for the Discovery environment.
 
+## Configuration
+
+- `groups.enabled` — when true, group memberships are resolved through the DE
+  groups service instead of the Grouper database. Default: `false`.
+- `groups.base_uri` — base URL of the groups service. Only used when
+  `groups.enabled` is true.
+- `groups.user` — service account username sent to the groups service as the
+  acting user. It must be listed in the groups service's `admin.users`
+  setting. Only used when `groups.enabled` is true.
+
 # Implementation Details
 
 This service is generated using [go-swagger](https://github.com/go-swagger/go-swagger).
