@@ -109,3 +109,35 @@ func (c *Client) GroupsForSubject(ctx context.Context, subjectID string) ([]*gro
 	}
 	return groups, nil
 }
+
+// membersResponse matches the groups service GET /groups/{id}/members body.
+type membersResponse struct {
+	Members []struct {
+		ID string `json:"id"`
+	} `json:"members"`
+}
+
+// ListUsersInGroup returns the users belonging to a group. Group membership is
+// flat (groups never contain groups), so every member is a user and the legacy
+// "ldap" source ID is reported to preserve the wire contract. A missing group
+// yields an empty list, matching the Grouper database behavior for groups that
+// were deleted after a permission was granted to them.
+func (c *Client) ListUsersInGroup(
+	ctx context.Context,
+	groupID models.ExternalSubjectID,
+) ([]*models.SubjectOut, error) {
+	var body membersResponse
+	if err := c.get(ctx, &body, "groups", string(groupID), "members"); err != nil {
+		if errors.Is(err, errNotFound) {
+			return []*models.SubjectOut{}, nil
+		}
+		return nil, err
+	}
+	members := make([]*models.SubjectOut, 0, len(body.Members))
+	for _, member := range body.Members {
+		id := models.ExternalSubjectID(member.ID)
+		source := userSubjectSource
+		members = append(members, &models.SubjectOut{SubjectID: &id, SubjectSourceID: &source})
+	}
+	return members, nil
+}
