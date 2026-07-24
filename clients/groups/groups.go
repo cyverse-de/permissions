@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cyverse-de/permissions/clients/grouper"
+	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 )
 
@@ -73,7 +74,7 @@ func (c *Client) get(ctx context.Context, out interface{}, pathSegments ...strin
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer logger.LogClose(resp.Body, "groups service response body")
 
 	if resp.StatusCode == http.StatusNotFound {
 		return errNotFound
