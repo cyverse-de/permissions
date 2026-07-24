@@ -122,3 +122,49 @@ func TestListUsersInGroupMissingGroup(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, members)
 }
+
+func subjectTypePtr(t models.SubjectType) *models.SubjectType { return &t }
+
+func permissionWithSubjectType(subjectID string, st *models.SubjectType) *models.Permission {
+	id := models.ExternalSubjectID(subjectID)
+	return &models.Permission{Subject: &models.SubjectOut{SubjectID: &id, SubjectType: st}}
+}
+
+func TestAddSourceIDToPermissions(t *testing.T) {
+	client, err := NewClient("http://groups", "permissions-svc")
+	require.NoError(t, err)
+
+	tests := []struct {
+		name       string
+		perm       *models.Permission
+		wantSource models.SubjectSourceID
+	}{
+		{"user subject", permissionWithSubjectType("alice", subjectTypePtr(models.SubjectTypeUser)), "ldap"},
+		{"group subject", permissionWithSubjectType("g1", subjectTypePtr(models.SubjectTypeGroup)), "g:gsa"},
+		{"missing subject type defaults to user", permissionWithSubjectType("bob", nil), "ldap"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.NoError(t, client.AddSourceIDToPermissions(context.Background(), []*models.Permission{tt.perm}))
+			require.NotNil(t, tt.perm.Subject.SubjectSourceID)
+			assert.Equal(t, tt.wantSource, *tt.perm.Subject.SubjectSourceID)
+		})
+	}
+}
+
+func TestAddSourceIDToPermission(t *testing.T) {
+	client, err := NewClient("http://groups", "permissions-svc")
+	require.NoError(t, err)
+
+	perm := permissionWithSubjectType("g1", subjectTypePtr(models.SubjectTypeGroup))
+	require.NoError(t, client.AddSourceIDToPermission(context.Background(), perm))
+	assert.Equal(t, models.SubjectSourceID("g:gsa"), *perm.Subject.SubjectSourceID)
+}
+
+func TestIsGroupSource(t *testing.T) {
+	client, err := NewClient("http://groups", "permissions-svc")
+	require.NoError(t, err)
+
+	assert.True(t, client.IsGroupSource(models.SubjectSourceID("g:gsa")))
+	assert.False(t, client.IsGroupSource(models.SubjectSourceID("ldap")))
+}

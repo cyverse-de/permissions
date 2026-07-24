@@ -141,3 +141,31 @@ func (c *Client) ListUsersInGroup(
 	}
 	return members, nil
 }
+
+// Compile-time check that the full grouper.Grouper interface is implemented.
+var _ grouper.Grouper = (*Client)(nil)
+
+// IsGroupSource returns true if the given source ID marks a group subject.
+func (c *Client) IsGroupSource(sourceID models.SubjectSourceID) bool {
+	return sourceID == groupSubjectSource
+}
+
+// AddSourceIDToPermissions derives each subject's source ID from the subject
+// type already stored in the permissions database, so no external lookup is
+// needed. Subjects without a type are treated as users; that only happens for
+// permissions built outside the DB layer, which always populates the type.
+func (c *Client) AddSourceIDToPermissions(_ context.Context, permissions []*models.Permission) error {
+	for _, permission := range permissions {
+		source := userSubjectSource
+		if permission.Subject.SubjectType != nil && *permission.Subject.SubjectType == models.SubjectTypeGroup {
+			source = groupSubjectSource
+		}
+		permission.Subject.SubjectSourceID = &source
+	}
+	return nil
+}
+
+// AddSourceIDToPermission derives the subject's source ID from its subject type.
+func (c *Client) AddSourceIDToPermission(ctx context.Context, permission *models.Permission) error {
+	return c.AddSourceIDToPermissions(ctx, []*models.Permission{permission})
+}
