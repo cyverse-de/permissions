@@ -52,6 +52,11 @@ db:
 grouperdb:
   uri: "postgresql://de:notprod@adedb:5432/grouper?sslmode=disable"
   folder_name_prefix: "iplant:de:docker-compose"
+
+# Appended to a bare username to form the public.users.username of the
+# corresponding DE user, so that a subject can be correlated with it.
+users:
+  suffix: "@iplantcollaborative.org"
 `
 
 // Command line options that aren't managed by go-swagger.
@@ -84,6 +89,10 @@ func validateOptions() error {
 var db *sql.DB
 var grouperClient *grouper.Client
 var schema string
+
+// userSuffix forms a DE username from a bare one, for correlating a subject with
+// its public.users row.
+var userSuffix string
 var tracerCtxCancel func()
 var tracerShutdown func()
 
@@ -120,6 +129,7 @@ func initService() error {
 	}
 
 	schema = cfg.GetString("db.schema")
+	userSuffix = cfg.GetString("users.suffix")
 
 	grouperDburi := cfg.GetString("grouperdb.uri")
 	grouperFolderNamePrefix := cfg.GetString("grouperdb.folder_name_prefix")
@@ -202,7 +212,7 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.SubjectsAddSubjectHandler = subjects.AddSubjectHandlerFunc(
-		subjects_impl.BuildAddSubjectHandler(db, schema),
+		subjects_impl.BuildAddSubjectHandler(db, schema, userSuffix),
 	)
 
 	api.SubjectsDeleteSubjectByExternalIDHandler = subjects.DeleteSubjectByExternalIDHandlerFunc(
@@ -226,7 +236,7 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsGrantPermissionHandler = permissions.GrantPermissionHandlerFunc(
-		permissions_impl.BuildGrantPermissionHandler(db, grouperClient, schema),
+		permissions_impl.BuildGrantPermissionHandler(db, grouperClient, schema, userSuffix),
 	)
 
 	api.PermissionsRevokePermissionHandler = permissions.RevokePermissionHandlerFunc(
@@ -234,11 +244,11 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsPutPermissionHandler = permissions.PutPermissionHandlerFunc(
-		permissions_impl.BuildPutPermissionHandler(db, grouperClient, schema),
+		permissions_impl.BuildPutPermissionHandler(db, grouperClient, schema, userSuffix),
 	)
 
 	api.PermissionsCopyPermissionsHandler = permissions.CopyPermissionsHandlerFunc(
-		permissions_impl.BuildCopyPermissionsHandler(db, schema),
+		permissions_impl.BuildCopyPermissionsHandler(db, schema, userSuffix),
 	)
 
 	api.PermissionsBySubjectHandler = permissions.BySubjectHandlerFunc(
@@ -259,7 +269,7 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsListResourcePermissionsHandler = permissions.ListResourcePermissionsHandlerFunc(
-		permissions_impl.BuildListResourcePermissionsHandler(db, grouperClient, schema),
+		permissions_impl.BuildListResourcePermissionsHandler(db, grouperClient, schema, userSuffix),
 	)
 
 	api.ServerShutdown = cleanup

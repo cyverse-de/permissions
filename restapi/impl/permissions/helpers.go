@@ -23,6 +23,7 @@ func getOrAddSubject(
 	ctx context.Context,
 	tx *sql.Tx,
 	subjectIn *models.SubjectIn,
+	userSuffix string,
 	erf *ErrorResponseFns,
 ) (*models.SubjectOut, middleware.Responder) {
 
@@ -48,7 +49,7 @@ func getOrAddSubject(
 	}
 
 	// Attempt to add the subject.
-	subject, err = permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
+	subject, err = permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())

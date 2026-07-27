@@ -45,17 +45,39 @@ func rowsToSubject(rows *sql.Rows, duplicateErr error) (*models.SubjectOut, erro
 }
 
 // AddSubject adds a subject to the database.
+//
+// A user subject is correlated with its DE user row when one exists, so that
+// joining subjects to public.users does not mean reconstructing the suffixed
+// username at every call site. The correlation is best-effort: a subject may be
+// created before the user has ever logged in to the DE, and that must not
+// prevent the subject from existing.
+//
+// The lookup is conditional on the subject type because subjects_user_id_is_user
+// rejects a group row carrying a user_id, and guarded by NOT EXISTS because
+// subjects_user_id_unique would turn a second claim on the same DE user into a
+// failed insert rather than a missing correlation.
 func AddSubject(
 	ctx context.Context,
 	tx *sql.Tx,
 	subjectID models.ExternalSubjectID,
 	subjectType models.SubjectType,
+	userSuffix string,
 ) (*models.SubjectOut, error) {
 
 	// Update the database.
-	query := `INSERT INTO subjects (subject_id, subject_type) VALUES ($1, $2)
+	// The subject type is passed a second time as a boolean rather than reused
+	// in the WHERE clause: $2 is an enum in the column list, and comparing it to
+	// a text literal makes PostgreSQL deduce two types for one parameter.
+	query := `INSERT INTO subjects (subject_id, subject_type, user_id)
+            VALUES ($1::text, $2, (
+                SELECT u.id FROM public.users u
+                 WHERE $4::boolean
+                   AND u.username = $1::text || $3::text
+                   AND NOT EXISTS (SELECT 1 FROM subjects o WHERE o.user_id = u.id)))
             RETURNING id, subject_id, subject_type`
-	row := tx.QueryRowContext(ctx, query, string(subjectID), string(subjectType))
+	row := tx.QueryRowContext(ctx, query,
+		string(subjectID), string(subjectType), userSuffix,
+		subjectType == models.SubjectTypeUser)
 
 	// Return the subject information.
 	var subjectDto SubjectDTO
@@ -229,6 +251,7 @@ func GetOrAddSubject(
 	tx *sql.Tx,
 	subjectID models.ExternalSubjectID,
 	subjectType models.SubjectType,
+	userSuffix string,
 ) (*models.SubjectOut, error) {
 
 	// Attempt to load the subject from the database.
@@ -250,7 +273,7 @@ func GetOrAddSubject(
 	}
 
 	// Add the subject to the database.
-	return AddSubject(ctx, tx, subjectID, subjectType)
+	return AddSubject(ctx, tx, subjectID, subjectType, userSuffix)
 }
 
 // GetSubjectByExternalID returns information about the subjects with the given external ID.

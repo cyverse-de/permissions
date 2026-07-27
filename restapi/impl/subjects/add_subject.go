@@ -13,7 +13,7 @@ import (
 )
 
 // BuildAddSubjectHandler builds the request handler for the add subject endpoint.
-func BuildAddSubjectHandler(db *sql.DB, schema string) func(subjects.AddSubjectParams) middleware.Responder {
+func BuildAddSubjectHandler(db *sql.DB, schema, userSuffix string) func(subjects.AddSubjectParams) middleware.Responder {
 
 	// Return the handler function.
 	return func(params subjects.AddSubjectParams) middleware.Responder {
@@ -58,7 +58,7 @@ func BuildAddSubjectHandler(db *sql.DB, schema string) func(subjects.AddSubjectP
 		}
 
 		// Add the subject.
-		subjectOut, err := permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
+		subjectOut, err := permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)

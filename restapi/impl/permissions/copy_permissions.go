@@ -28,7 +28,7 @@ func copyPermissionsInternalServerError(reason string) middleware.Responder {
 }
 
 // BuildCopyPermissionsHandler builds the request handler for the copy permissions endpoint.
-func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.CopyPermissionsParams) middleware.Responder {
+func BuildCopyPermissionsHandler(db *sql.DB, schema, userSuffix string) func(permissions.CopyPermissionsParams) middleware.Responder {
 
 	erf := &ErrorResponseFns{
 		InternalServerError: copyPermissionsInternalServerError,
@@ -56,7 +56,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 		}
 
 		// Either get or add the source subject.
-		source, errorResponse := getOrAddSubject(ctx, tx, &models.SubjectIn{SubjectType: &sourceType, SubjectID: &sourceID}, erf)
+		source, errorResponse := getOrAddSubject(ctx, tx, &models.SubjectIn{SubjectType: &sourceType, SubjectID: &sourceID}, userSuffix, erf)
 		if errorResponse != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponse
@@ -66,7 +66,7 @@ func BuildCopyPermissionsHandler(db *sql.DB, schema string) func(permissions.Cop
 		for _, destIn := range destSubjects {
 
 			// Either get or add the subject.
-			dest, errorResponse := getOrAddSubject(ctx, tx, destIn, erf)
+			dest, errorResponse := getOrAddSubject(ctx, tx, destIn, userSuffix, erf)
 			if errorResponse != nil {
 				tx.Rollback() // nolint:errcheck
 				return errorResponse

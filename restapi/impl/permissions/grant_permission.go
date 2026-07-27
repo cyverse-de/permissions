@@ -27,7 +27,7 @@ func grantPermissionBadRequest(reason string) middleware.Responder {
 
 // BuildGrantPermissionHandler builds the request handler for the grant permissions endpoint.
 func BuildGrantPermissionHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema string,
+	db *sql.DB, grouperClient grouper.Grouper, schema, userSuffix string,
 ) func(permissions.GrantPermissionParams) middleware.Responder {
 
 	erf := &ErrorResponseFns{
@@ -54,7 +54,7 @@ func BuildGrantPermissionHandler(
 		}
 
 		// Either get or add the subject.
-		subject, errorResponder := getOrAddSubject(ctx, tx, req.Subject, erf)
+		subject, errorResponder := getOrAddSubject(ctx, tx, req.Subject, userSuffix, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder

@@ -27,7 +27,7 @@ func putPermissionBadRequest(reason string) middleware.Responder {
 
 // BuildPutPermissionHandler builds the request handler for the put permission endpoint.
 func BuildPutPermissionHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema string,
+	db *sql.DB, grouperClient grouper.Grouper, schema, userSuffix string,
 ) func(permissions.PutPermissionParams) middleware.Responder {
 
 	erf := &ErrorResponseFns{
@@ -60,7 +60,7 @@ func BuildPutPermissionHandler(
 			SubjectID:   &subjectID,
 			SubjectType: &subjectType,
 		}
-		subject, errorResponder := getOrAddSubject(ctx, tx, subjectIn, erf)
+		subject, errorResponder := getOrAddSubject(ctx, tx, subjectIn, userSuffix, erf)
 		if errorResponder != nil {
 			tx.Rollback() // nolint:errcheck
 			return errorResponder

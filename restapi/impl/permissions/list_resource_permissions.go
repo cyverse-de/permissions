@@ -37,6 +37,7 @@ func expandGroupPermissions(
 	tx *sql.Tx,
 	grouperClient grouper.Grouper,
 	perms []*models.Permission,
+	userSuffix string,
 ) ([]*models.Permission, error) {
 
 	// Get the list of group IDs from the list of permissions.
@@ -90,7 +91,7 @@ func expandGroupPermissions(
 		if ok {
 			return out, nil
 		}
-		subject, err := permsdb.GetOrAddSubject(ctx, tx, *in.SubjectID, models.SubjectTypeUser)
+		subject, err := permsdb.GetOrAddSubject(ctx, tx, *in.SubjectID, models.SubjectTypeUser, userSuffix)
 		if err != nil {
 			return nil, err
 		}
@@ -159,7 +160,7 @@ func expandGroupPermissions(
 
 // BuildListResourcePermissionsHandler builds the request handler for the list resource permissions endpoint.
 func BuildListResourcePermissionsHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema string,
+	db *sql.DB, grouperClient grouper.Grouper, schema, userSuffix string,
 ) func(permissions.ListResourcePermissionsParams) middleware.Responder {
 
 	// Return the handler function.
@@ -198,7 +199,7 @@ func BuildListResourcePermissionsHandler(
 
 		// Expand groups in the response body if we're supposed to.
 		if expandGroups {
-			perms, err = expandGroupPermissions(ctx, tx, grouperClient, perms)
+			perms, err = expandGroupPermissions(ctx, tx, grouperClient, perms, userSuffix)
 			if err != nil {
 				logger.Log.Errorf("expanding group permissions: %v", err)
 				return listResourcePermissionsInternalServerError(err.Error())

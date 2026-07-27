@@ -68,7 +68,7 @@ func grantPermissionAttempt(
 
 	// Build the request handler.
 	grouperClient := grouper.NewEmptyMockGrouperClient()
-	handler := impl.BuildGrantPermissionHandler(db, grouperClient, schema)
+	handler := impl.BuildGrantPermissionHandler(db, grouperClient, schema, testUserSuffix)
 
 	// Attempt to add the permission.
 	req := &models.PermissionGrantRequest{Subject: subject, Resource: resource, PermissionLevel: &level}
@@ -119,7 +119,7 @@ func putPermissionAttempt(
 
 	// Build the request handler.
 	grouperClient := grouper.NewEmptyMockGrouperClient()
-	handler := impl.BuildPutPermissionHandler(db, grouperClient, schema)
+	handler := impl.BuildPutPermissionHandler(db, grouperClient, schema, testUserSuffix)
 
 	// Attempt to put the permission.
 	permissionLevel := models.PermissionLevel(level)
@@ -163,7 +163,7 @@ func listResourcePermissionsAttempt(
 
 	// Build the request handler.
 	grouperClient := grouper.NewMockGrouperClient(nil, memberships)
-	handler := impl.BuildListResourcePermissionsHandler(db, grouperClient, schema)
+	handler := impl.BuildListResourcePermissionsHandler(db, grouperClient, schema, testUserSuffix)
 
 	// Attempt to list the permissions for the resource.
 	params := permissions.ListResourcePermissionsParams{
@@ -210,7 +210,7 @@ func listSubjectPermissions(db *sql.DB, schema, subjectType, subjectID string) *
 func copyPermissionsAttempt(db *sql.DB, schema, sourceType, sourceID, destType, destID string) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildCopyPermissionsHandler(db, schema)
+	handler := impl.BuildCopyPermissionsHandler(db, schema, testUserSuffix)
 
 	// Attempt to copy the permissions.
 	destinationSubjectType := models.SubjectType(destType)

@@ -30,7 +30,7 @@ func addSubjectAttempt(
 ) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildAddSubjectHandler(db, schema)
+	handler := impl.BuildAddSubjectHandler(db, schema, testUserSuffix)
 
 	// Attempt to add the subject to the database.
 	subjectIn := &models.SubjectIn{SubjectID: &subjectID, SubjectType: &subjectType}
