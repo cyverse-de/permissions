@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	permsdb "github.com/cyverse-de/permissions/restapi/impl/db"
@@ -120,37 +119,4 @@ func extractLookupFlag(lookup *bool) bool {
 		return *lookup
 	}
 	return false
-}
-
-func groupIdsForSubject(ctx context.Context, grouperClient grouper.Grouper, subjectType, subjectID string) ([]string, error) {
-	groupIds := make([]string, 0)
-
-	// Simply return an empty slice if the subject is a group.
-	if subjectType == "group" {
-		return groupIds, nil
-	}
-
-	// Look up the groups.
-	groups, err := grouperClient.GroupsForSubject(ctx, subjectID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Extract the identifiers from the list of groups.
-	for _, group := range groups {
-		groupIds = append(groupIds, group.ID)
-	}
-
-	return groupIds, nil
-}
-
-func buildSubjectIDList(ctx context.Context, grouperClient grouper.Grouper, subjectType, subjectID string, lookup bool) ([]string, error) {
-	if lookup {
-		groupIds, err := groupIdsForSubject(ctx, grouperClient, subjectType, subjectID)
-		if err != nil {
-			return nil, err
-		}
-		return append(groupIds, subjectID), nil
-	}
-	return []string{subjectID}, nil
 }

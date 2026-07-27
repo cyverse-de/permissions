@@ -188,7 +188,7 @@ func listResourcePermissions(
 func listSubjectPermissionsAttempt(db *sql.DB, schema, subjectType, subjectID string) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildBySubjectHandler(db, grouper.Grouper(mockGrouperClient), schema)
+	handler := impl.BuildBySubjectHandler(db, schema)
 
 	// Attempt to look up the permissions.
 	lookup := false

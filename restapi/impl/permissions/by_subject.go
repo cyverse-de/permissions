@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	permsdb "github.com/cyverse-de/permissions/restapi/impl/db"
@@ -33,7 +32,7 @@ func bySubjectBadRequest(reason string) middleware.Responder {
 
 // BuildBySubjectHandler builds the request handler for the permissions by subject endpoint
 func BuildBySubjectHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema string,
+	db *sql.DB, schema string,
 ) func(permissions.BySubjectParams) middleware.Responder {
 
 	// Return the handler function.
@@ -70,25 +69,17 @@ func BuildBySubjectHandler(
 			return bySubjectBadRequest(reason)
 		}
 
-		// Get the list of subject IDs to use for the query.
-		subjectIds, err := buildSubjectIDList(ctx, grouperClient, subjectType, subjectID, lookup)
-		if err != nil {
-			tx.Rollback() // nolint:errcheck
-			logger.Log.Error(err)
-			return bySubjectInternalServerError(err.Error())
-		}
-
 		// Perform the lookup.
 		var perms []*models.Permission
 		if minLevel == nil {
-			perms, err = permsdb.PermissionsForSubjects(ctx, tx, subjectIds)
+			perms, err = permsdb.PermissionsForSubjects(ctx, tx, string(subjectID), lookup)
 			if err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
 				return bySubjectInternalServerError(err.Error())
 			}
 		} else {
-			perms, err = permsdb.PermissionsForSubjectsMinLevel(ctx, tx, subjectIds, *minLevel)
+			perms, err = permsdb.PermissionsForSubjectsMinLevel(ctx, tx, string(subjectID), lookup, *minLevel)
 			if err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)

@@ -63,3 +63,64 @@ func initdb(t *testing.T) (*sql.DB, string) {
 
 	return db, dbschema
 }
+
+// addGroupMembership records a group's membership in the database.
+//
+// Group expansion now reads group_effective_members rather than calling out to
+// Grouper, so the memberships the lookup tests rely on have to exist as rows.
+// The closure is built by the same SQL function the services use, so the
+// fixture exercises the real maintenance path rather than a hand-written
+// approximation of it.
+func addGroupMembership(t *testing.T, db *sql.DB, schema, groupID string, usernames ...string) {
+	t.Helper()
+
+	var groupInternalID string
+	err := db.QueryRow(fmt.Sprintf(`
+		INSERT INTO %[1]s.subjects (subject_id, subject_type) VALUES ($1, 'group')
+		ON CONFLICT (subject_id) DO UPDATE SET subject_type = %[1]s.subjects.subject_type
+		RETURNING id`, schema), groupID).Scan(&groupInternalID)
+	if err != nil {
+		t.Fatalf("could not create the group subject %s: %s", groupID, err)
+	}
+
+	_, err = db.Exec(fmt.Sprintf(`
+		INSERT INTO %s.groups (subject_id, group_type, name) VALUES ($1, 'system', $2)
+		ON CONFLICT (subject_id) DO NOTHING`, schema), groupInternalID, groupID)
+	if err != nil {
+		t.Fatalf("could not create the group %s: %s", groupID, err)
+	}
+
+	for _, username := range usernames {
+		var memberID string
+		err := db.QueryRow(fmt.Sprintf(`
+			INSERT INTO %[1]s.subjects (subject_id, subject_type) VALUES ($1, 'user')
+			ON CONFLICT (subject_id) DO UPDATE SET subject_type = %[1]s.subjects.subject_type
+			RETURNING id`, schema), username).Scan(&memberID)
+		if err != nil {
+			t.Fatalf("could not create the member subject %s: %s", username, err)
+		}
+
+		_, err = db.Exec(fmt.Sprintf(`
+			INSERT INTO %s.group_memberships (group_id, member_id, member_type)
+			VALUES ($1, $2, 'user') ON CONFLICT DO NOTHING`, schema), groupInternalID, memberID)
+		if err != nil {
+			t.Fatalf("could not add %s to %s: %s", username, groupID, err)
+		}
+	}
+
+	if _, err := db.Exec(
+		fmt.Sprintf(`SELECT %s.recompute_group_closure(ARRAY[$1]::uuid[])`, schema),
+		groupInternalID,
+	); err != nil {
+		t.Fatalf("could not recompute the closure for %s: %s", groupID, err)
+	}
+}
+
+// addDefaultGroupMemberships mirrors the membership the lookup tests assume:
+// s2 belongs to g1id, and s1 belongs to all three groups.
+func addDefaultGroupMemberships(t *testing.T, db *sql.DB, schema string) {
+	t.Helper()
+	addGroupMembership(t, db, schema, "g1id", "s1", "s2")
+	addGroupMembership(t, db, schema, "g2id", "s1")
+	addGroupMembership(t, db, schema, "g3id", "s1")
+}

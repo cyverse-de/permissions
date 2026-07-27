@@ -4,31 +4,16 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/models"
 	impl "github.com/cyverse-de/permissions/restapi/impl/permissions"
 	"github.com/cyverse-de/permissions/restapi/operations/permissions"
 	middleware "github.com/go-openapi/runtime/middleware"
 )
 
-var groups = []*grouper.GroupInfo{
-	{ID: "g1id", Name: "g1"},
-	{ID: "g2id", Name: "g2"},
-	{ID: "g3id", Name: "g3"},
-}
-
-var groupMemberships = map[string][]*grouper.GroupInfo{
-	"s1":   groups,
-	"s2":   groups[:1],
-	"g1id": groups[1:1],
-}
-
-var mockGrouperClient = grouper.NewMockGrouperClient(groupMemberships, nil)
-
 func bySubjectAttempt(db *sql.DB, schema, subjectType, subjectID string, lookup bool, minLevel *string) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildBySubjectHandler(db, grouper.Grouper(mockGrouperClient), schema)
+	handler := impl.BuildBySubjectHandler(db, schema)
 
 	// Attempt to look up the permissions.
 	params := permissions.BySubjectParams{
@@ -51,7 +36,7 @@ func bySubjectAndResourceTypeAttempt(
 ) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildBySubjectAndResourceTypeHandler(db, grouper.Grouper(mockGrouperClient), schema)
+	handler := impl.BuildBySubjectAndResourceTypeHandler(db, schema)
 
 	// Attempt to look up the permissions.
 	params := permissions.BySubjectAndResourceTypeParams{
@@ -77,7 +62,7 @@ func bySubjectAndResourceAttempt(
 ) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildBySubjectAndResourceHandler(db, grouper.Grouper(mockGrouperClient), schema)
+	handler := impl.BuildBySubjectAndResourceHandler(db, schema)
 
 	// Attempt to look up the permissions.
 	params := permissions.BySubjectAndResourceParams{
@@ -107,6 +92,7 @@ func TestBySubject(t *testing.T) {
 	// Initialize the database.
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
 
 	// Add some permissions.
 	putPermission(db, schema, "user", "s2", "app", "r1", "own")
@@ -132,6 +118,7 @@ func TestBySubjectMultiplePermissions(t *testing.T) {
 	// Initialize the database.
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
 
 	// Add some permissions.
 	putPermission(db, schema, "user", "s2", "app", "r1", "own")
@@ -246,6 +233,7 @@ func TestBySubjectMinLevel(t *testing.T) {
 	// Initialize the database.
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
 
 	// Add some permissions.
 	putPermission(db, schema, "user", "s2", "app", "r1", "own")
@@ -277,6 +265,7 @@ func TestBySubjectAndResourceType(t *testing.T) {
 	// Initialize the database.
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
 
 	// Add some permissions.
 	putPermission(db, schema, "user", "s2", "app", "app1", "own")
@@ -499,6 +488,7 @@ func TestBySubjectAndResource(t *testing.T) {
 	// Initialize the database.
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
 
 	// Add some permissions.
 	putPermission(db, schema, "user", "s2", "app", "app1", "own")

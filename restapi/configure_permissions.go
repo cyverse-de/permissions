@@ -252,20 +252,20 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsBySubjectHandler = permissions.BySubjectHandlerFunc(
-		permissions_impl.BuildBySubjectHandler(db, grouperClient, schema),
+		permissions_impl.BuildBySubjectHandler(db, schema),
 	)
 
 	api.PermissionsBySubjectAndResourceTypeHandler = permissions.BySubjectAndResourceTypeHandlerFunc(
-		permissions_impl.BuildBySubjectAndResourceTypeHandler(db, grouperClient, schema),
+		permissions_impl.BuildBySubjectAndResourceTypeHandler(db, schema),
 	)
 
 	api.PermissionsBySubjectAndResourceTypeAbbreviatedHandler =
 		permissions.BySubjectAndResourceTypeAbbreviatedHandlerFunc(
-			permissions_impl.BuildBySubjectAndResourceTypeAbbreviatedHandler(db, grouperClient, schema),
+			permissions_impl.BuildBySubjectAndResourceTypeAbbreviatedHandler(db, schema),
 		)
 
 	api.PermissionsBySubjectAndResourceHandler = permissions.BySubjectAndResourceHandlerFunc(
-		permissions_impl.BuildBySubjectAndResourceHandler(db, grouperClient, schema),
+		permissions_impl.BuildBySubjectAndResourceHandler(db, schema),
 	)
 
 	api.PermissionsListResourcePermissionsHandler = permissions.ListResourcePermissionsHandlerFunc(

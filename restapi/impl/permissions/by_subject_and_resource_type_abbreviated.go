@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	permsdb "github.com/cyverse-de/permissions/restapi/impl/db"
@@ -31,7 +30,7 @@ func bySubjectAndResourceTypeAbbreviatedBadRequest(reason string) middleware.Res
 }
 
 func BuildBySubjectAndResourceTypeAbbreviatedHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema string,
+	db *sql.DB, schema string,
 ) func(permissions.BySubjectAndResourceTypeAbbreviatedParams) middleware.Responder {
 
 	// Return the handler function.
@@ -78,16 +77,9 @@ func BuildBySubjectAndResourceTypeAbbreviatedHandler(
 			return bySubjectAndResourceTypeAbbreviatedOk(make([]*models.AbbreviatedPermission, 0))
 		}
 
-		// Get the list of subject IDs to use for the query.
-		subjectIDs, err := buildSubjectIDList(ctx, grouperClient, subjectType, subjectID, lookup)
-		if err != nil {
-			logger.Log.Error(err)
-			return bySubjectAndResourceTypeAbbreviatedInternalServerError(err.Error())
-		}
-
 		// Perform the lookup.
 		perms, err := permsdb.AbbreviatedPermissionsForSubjectAndResourceType(
-			ctx, tx, subjectIDs, resourceTypeName, minLevel,
+			ctx, tx, string(subjectID), lookup, resourceTypeName, minLevel,
 		)
 		if err != nil {
 			logger.Log.Error(err)
