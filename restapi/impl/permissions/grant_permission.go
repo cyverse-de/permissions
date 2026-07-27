@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	permsdb "github.com/cyverse-de/permissions/restapi/impl/db"
@@ -27,7 +26,7 @@ func grantPermissionBadRequest(reason string) middleware.Responder {
 
 // BuildGrantPermissionHandler builds the request handler for the grant permissions endpoint.
 func BuildGrantPermissionHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema, userSuffix string,
+	db *sql.DB, schema, userSuffix string,
 ) func(permissions.GrantPermissionParams) middleware.Responder {
 
 	erf := &ErrorResponseFns{

@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const testMaxExpandedSubjects = 10000
+
 const FakeID = "1A960034-969A-46A7-B6B5-3F1866258CAB"
 
 func shouldRun() bool {

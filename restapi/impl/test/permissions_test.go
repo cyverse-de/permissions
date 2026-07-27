@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	"github.com/cyverse-de/permissions/restapi/operations/permissions"
@@ -66,9 +65,7 @@ func grantPermissionAttempt(
 	level models.PermissionLevel,
 ) middleware.Responder {
 
-	// Build the request handler.
-	grouperClient := grouper.NewEmptyMockGrouperClient()
-	handler := impl.BuildGrantPermissionHandler(db, grouperClient, schema, testUserSuffix)
+	handler := impl.BuildGrantPermissionHandler(db, schema, testUserSuffix)
 
 	// Attempt to add the permission.
 	req := &models.PermissionGrantRequest{Subject: subject, Resource: resource, PermissionLevel: &level}
@@ -117,9 +114,7 @@ func putPermissionAttempt(
 	db *sql.DB, schema, subjectType, subjectID, resourceType, resourceName, level string,
 ) middleware.Responder {
 
-	// Build the request handler.
-	grouperClient := grouper.NewEmptyMockGrouperClient()
-	handler := impl.BuildPutPermissionHandler(db, grouperClient, schema, testUserSuffix)
+	handler := impl.BuildPutPermissionHandler(db, schema, testUserSuffix)
 
 	// Attempt to put the permission.
 	permissionLevel := models.PermissionLevel(level)
@@ -141,9 +136,7 @@ func putPermission(db *sql.DB, schema, subjectType, subjectID, resourceType, res
 
 func listPermissionsAttempt(db *sql.DB, schema string) middleware.Responder {
 
-	// Build the request handler.
-	grouperClient := grouper.NewEmptyMockGrouperClient()
-	handler := impl.BuildListPermissionsHandler(db, grouperClient, schema)
+	handler := impl.BuildListPermissionsHandler(db, schema)
 
 	// Attempt to list the permissions.
 	return handler(permissions.ListPermissionsParams{HTTPRequest: fakeRequest()})
@@ -158,12 +151,10 @@ func listResourcePermissionsAttempt(
 	db *sql.DB,
 	schema, resourceType, resourceName string,
 	expandGroups bool,
-	memberships map[string][]*models.SubjectOut,
 ) middleware.Responder {
 
 	// Build the request handler.
-	grouperClient := grouper.NewMockGrouperClient(nil, memberships)
-	handler := impl.BuildListResourcePermissionsHandler(db, grouperClient, schema, testUserSuffix)
+	handler := impl.BuildListResourcePermissionsHandler(db, schema, testMaxExpandedSubjects)
 
 	// Attempt to list the permissions for the resource.
 	params := permissions.ListResourcePermissionsParams{
@@ -179,9 +170,8 @@ func listResourcePermissions(
 	db *sql.DB,
 	schema, resourceType, resourceName string,
 	expandGroups bool,
-	memberships map[string][]*models.SubjectOut,
 ) *models.PermissionList {
-	responder := listResourcePermissionsAttempt(db, schema, resourceType, resourceName, expandGroups, memberships)
+	responder := listResourcePermissionsAttempt(db, schema, resourceType, resourceName, expandGroups)
 	return responder.(*permissions.ListResourcePermissionsOK).Payload
 }
 
@@ -248,31 +238,6 @@ func addDefaultPermissions(db *sql.DB, schema string) {
 	putPermission(db, schema, "user", "s2", "analysis", "analysis2", "read")
 	putPermission(db, schema, "group", "g1id", "analysis", "analysis2", "write")
 	putPermission(db, schema, "group", "g2id", "analysis", "analysis3", "own")
-}
-
-func buildUserSubject(subjectID string) *models.SubjectOut {
-	subID := models.ExternalSubjectID(subjectID)
-	srcID := models.SubjectSourceID("ldap")
-	subType := models.SubjectTypeUser
-	return &models.SubjectOut{
-		SubjectID:       &subID,
-		SubjectSourceID: &srcID,
-		SubjectType:     &subType,
-	}
-}
-
-func buildDefaultMembershipsMap() map[string][]*models.SubjectOut {
-	memberships := make(map[string][]*models.SubjectOut)
-
-	// Create subjects for the users.
-	s1 := buildUserSubject("s1")
-	s2 := buildUserSubject("s2")
-
-	// Add the memberships to the map.
-	memberships["g1id"] = []*models.SubjectOut{s1, s2}
-	memberships["g2id"] = []*models.SubjectOut{s1}
-
-	return memberships
 }
 
 func TestGrantPermission(t *testing.T) {
@@ -846,7 +811,7 @@ func TestListResourcePermissionsEmpty(t *testing.T) {
 	addDefaultResourceTypes(db, schema, t)
 
 	// List permissions and verify that we get the expected number of results.
-	perms := listResourcePermissions(db, schema, "app", "r1", false, nil).Permissions
+	perms := listResourcePermissions(db, schema, "app", "r1", false).Permissions
 	if len(perms) != 0 {
 		t.Fatalf("unexpected number of results: %d", len(perms))
 	}
@@ -865,7 +830,7 @@ func TestListResourcePermissions(t *testing.T) {
 	addDefaultPermissions(db, schema)
 
 	// List permissions and verify that we get the expected number of results.
-	perms := listResourcePermissions(db, schema, "app", "app1", false, nil).Permissions
+	perms := listResourcePermissions(db, schema, "app", "app1", false).Permissions
 	if len(perms) != 4 {
 		t.Fatalf("unexpected number of results: %d", len(perms))
 	}
@@ -885,15 +850,13 @@ func TestListResourcePermissionsExpandGroups(t *testing.T) {
 	// Initialize the database.
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
 
 	// Add some permissions.
 	addDefaultPermissions(db, schema)
 
-	// Get some default memberships.
-	memberships := buildDefaultMembershipsMap()
-
 	// List permissions and verify that we get the expected number of results.
-	perms := listResourcePermissions(db, schema, "app", "app1", true, memberships).Permissions
+	perms := listResourcePermissions(db, schema, "app", "app1", true).Permissions
 	if len(perms) != 3 {
 		t.Fatalf("unexpected number of results: %d", len(perms))
 	}
@@ -904,7 +867,7 @@ func TestListResourcePermissionsExpandGroups(t *testing.T) {
 	checkPermForSubject(t, perms, "app1", "s3", "read")
 
 	// List permissions for a second resource and verify that we get the expected number of results.
-	perms = listResourcePermissions(db, schema, "app", "app2", true, memberships).Permissions
+	perms = listResourcePermissions(db, schema, "app", "app2", true).Permissions
 	if len(perms) != 2 {
 		t.Fatalf("unexpected number of results: %d", len(perms))
 	}

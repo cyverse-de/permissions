@@ -9,7 +9,6 @@ import (
 	permsdb "github.com/cyverse-de/permissions/restapi/impl/db"
 	"github.com/cyverse-de/permissions/restapi/operations/permissions"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/go-openapi/runtime/middleware"
 )
 
@@ -21,7 +20,7 @@ func internalServerError(reason string) *permissions.ListPermissionsInternalServ
 
 // BuildListPermissionsHandler builds the request handler for the list permissions endpoint.
 func BuildListPermissionsHandler(
-	db *sql.DB, grouper grouper.Grouper, schema string,
+	db *sql.DB, schema string,
 ) func(permissions.ListPermissionsParams) middleware.Responder {
 
 	// Return the handler function.

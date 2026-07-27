@@ -21,7 +21,6 @@ import (
 	swag "github.com/go-openapi/swag"
 	"github.com/spf13/viper"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/restapi/operations"
 	"github.com/cyverse-de/permissions/restapi/operations/permissions"
@@ -49,14 +48,16 @@ db:
   uri: "postgresql://de:notprod@dedb:5432/de?sslmode=disable"
   schema: "permissions"
 
-grouperdb:
-  uri: "postgresql://de:notprod@adedb:5432/grouper?sslmode=disable"
-  folder_name_prefix: "iplant:de:docker-compose"
-
 # Appended to a bare username to form the public.users.username of the
 # corresponding DE user, so that a subject can be correlated with it.
 users:
   suffix: "@iplantcollaborative.org"
+
+permissions:
+  # Caps the number of subjects a single resource's permissions may expand to
+  # when expand_groups is requested. de-users contains essentially every DE
+  # user, so an uncapped expansion of a public resource is unbounded work.
+  max_expanded_subjects: 10000
 `
 
 // Command line options that aren't managed by go-swagger.
@@ -87,12 +88,15 @@ func validateOptions() error {
 
 // The database connection.
 var db *sql.DB
-var grouperClient *grouper.Client
 var schema string
 
 // userSuffix forms a DE username from a bare one, for correlating a subject with
 // its public.users row.
 var userSuffix string
+
+// maxExpandedSubjects bounds how many subjects a resource's permissions may
+// expand to when a caller asks for group expansion.
+var maxExpandedSubjects int
 var tracerCtxCancel func()
 var tracerShutdown func()
 
@@ -130,13 +134,7 @@ func initService() error {
 
 	schema = cfg.GetString("db.schema")
 	userSuffix = cfg.GetString("users.suffix")
-
-	grouperDburi := cfg.GetString("grouperdb.uri")
-	grouperFolderNamePrefix := cfg.GetString("grouperdb.folder_name_prefix")
-	grouperClient, err = grouper.NewGrouperClient(grouperDburi, grouperFolderNamePrefix)
-	if err != nil {
-		return err
-	}
+	maxExpandedSubjects = cfg.GetInt("permissions.max_expanded_subjects")
 
 	if err := db.Ping(); err != nil {
 		return err
@@ -232,11 +230,11 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsListPermissionsHandler = permissions.ListPermissionsHandlerFunc(
-		permissions_impl.BuildListPermissionsHandler(db, grouperClient, schema),
+		permissions_impl.BuildListPermissionsHandler(db, schema),
 	)
 
 	api.PermissionsGrantPermissionHandler = permissions.GrantPermissionHandlerFunc(
-		permissions_impl.BuildGrantPermissionHandler(db, grouperClient, schema, userSuffix),
+		permissions_impl.BuildGrantPermissionHandler(db, schema, userSuffix),
 	)
 
 	api.PermissionsRevokePermissionHandler = permissions.RevokePermissionHandlerFunc(
@@ -244,7 +242,7 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsPutPermissionHandler = permissions.PutPermissionHandlerFunc(
-		permissions_impl.BuildPutPermissionHandler(db, grouperClient, schema, userSuffix),
+		permissions_impl.BuildPutPermissionHandler(db, schema, userSuffix),
 	)
 
 	api.PermissionsCopyPermissionsHandler = permissions.CopyPermissionsHandlerFunc(
@@ -269,7 +267,7 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.PermissionsListResourcePermissionsHandler = permissions.ListResourcePermissionsHandlerFunc(
-		permissions_impl.BuildListResourcePermissionsHandler(db, grouperClient, schema, userSuffix),
+		permissions_impl.BuildListResourcePermissionsHandler(db, schema, maxExpandedSubjects),
 	)
 
 	api.ServerShutdown = cleanup

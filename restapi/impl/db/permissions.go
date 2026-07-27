@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
@@ -615,4 +616,76 @@ func CopyPermissions(ctx context.Context, tx *sql.Tx, source, dest *models.Subje
 	_, err := tx.ExecContext(ctx, stmt, &source.ID, &dest.ID)
 
 	return err
+}
+
+// ErrTooManySubjects reports that expanding a resource's group permissions would
+// produce more subjects than the caller allowed.
+var ErrTooManySubjects = errors.New("too many subjects after group expansion")
+
+// ExpandedResourcePermissions lists a resource's permissions with each group
+// permission replaced by the group's effective members, keeping the strongest
+// level per subject.
+//
+// This replaces a loop that asked another service for each group's membership in
+// turn, then created a subject row for any member it had never seen -- writing
+// to the database while serving a GET. Effective members are already subjects
+// here, so nothing needs creating and the whole expansion is one statement.
+//
+// maxSubjects bounds the result. `de-users` contains essentially every DE user,
+// so expanding a public resource's permissions is unbounded work; it is slow
+// enough over HTTP today that nobody does it, and making it fast is exactly what
+// would invite someone to. Exceeding the bound is an error rather than a
+// truncation, because a silently short list of who can see a resource is worse
+// than a refusal.
+func ExpandedResourcePermissions(
+	ctx context.Context, tx *sql.Tx, resourceTypeName, resourceName string, maxSubjects int,
+) ([]*models.Permission, error) {
+
+	query := `WITH matching AS (
+	              SELECT p.id, p.subject_id, p.permission_level_id,
+	                     r.id AS resource_id, r.name AS resource_name, rt.name AS resource_type
+	                FROM permissions p
+	                JOIN resources r ON r.id = p.resource_id
+	                JOIN resource_types rt ON rt.id = r.resource_type_id
+	               WHERE rt.name = $1 AND r.name = $2
+	          ),
+	          expanded AS (
+	              SELECT m.id, s.id AS internal_subject_id, s.subject_id, s.subject_type,
+	                     m.permission_level_id, m.resource_id, m.resource_name, m.resource_type
+	                FROM matching m
+	                JOIN subjects s ON s.id = m.subject_id
+	               WHERE s.subject_type = 'user'
+	              UNION ALL
+	              SELECT m.id, ms.id, ms.subject_id, ms.subject_type,
+	                     m.permission_level_id, m.resource_id, m.resource_name, m.resource_type
+	                FROM matching m
+	                JOIN subjects gs ON gs.id = m.subject_id AND gs.subject_type = 'group'
+	                JOIN group_effective_members em ON em.group_id = gs.id
+	                JOIN subjects ms ON ms.id = em.member_id
+	          )
+	          SELECT DISTINCT ON (e.internal_subject_id)
+	                 e.id, e.internal_subject_id, e.subject_id, e.subject_type,
+	                 e.resource_id, e.resource_name, e.resource_type, pl.name
+	            FROM expanded e
+	            JOIN permission_levels pl ON pl.id = e.permission_level_id
+	           ORDER BY e.internal_subject_id, pl.precedence
+	           LIMIT $3`
+
+	// One more than the bound, so that exceeding it is detectable without
+	// counting the whole expansion first.
+	rows, err := tx.QueryContext(ctx, query, resourceTypeName, resourceName, maxSubjects+1)
+	if err != nil {
+		return nil, err
+	}
+	defer logger.LogClose(rows, "expanded permissions rows")
+
+	perms, err := rowsToPermissionList(rows)
+	if err != nil {
+		return nil, err
+	}
+	if len(perms) > maxSubjects {
+		return nil, fmt.Errorf("%w: %s/%s expands to more than %d subjects",
+			ErrTooManySubjects, resourceTypeName, resourceName, maxSubjects)
+	}
+	return perms, nil
 }

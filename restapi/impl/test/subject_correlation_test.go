@@ -104,7 +104,7 @@ func TestSourceIDDerivedFromSubjectType(t *testing.T) {
 	addDefaultResourceTypes(db, schema, t)
 	addDefaultPermissions(db, schema)
 
-	perms := listResourcePermissions(db, schema, "analysis", "analysis1", false, nil)
+	perms := listResourcePermissions(db, schema, "analysis", "analysis1", false)
 
 	seen := map[string]string{}
 	for _, p := range perms.Permissions {

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/cyverse-de/permissions/clients/grouper"
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	permsdb "github.com/cyverse-de/permissions/restapi/impl/db"
@@ -27,7 +26,7 @@ func putPermissionBadRequest(reason string) middleware.Responder {
 
 // BuildPutPermissionHandler builds the request handler for the put permission endpoint.
 func BuildPutPermissionHandler(
-	db *sql.DB, grouperClient grouper.Grouper, schema, userSuffix string,
+	db *sql.DB, schema, userSuffix string,
 ) func(permissions.PutPermissionParams) middleware.Responder {
 
 	erf := &ErrorResponseFns{
