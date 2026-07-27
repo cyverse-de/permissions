@@ -16,14 +16,36 @@ type PermissionDTO struct {
 	PermissionLevel   *models.PermissionLevel
 }
 
+// Subject source IDs, as Grouper reported them. Callers -- terrain among them --
+// tell users and groups apart by this field, so the values remain a wire
+// contract even though Grouper no longer supplies them.
+const (
+	userSourceID  = models.SubjectSourceID("ldap")
+	groupSourceID = models.SubjectSourceID("g:gsa")
+)
+
+// subjectSourceID derives a subject's source from its type.
+//
+// This was previously a second query against Grouper for every permission
+// listed. The subject type is already selected by every permission query and
+// says the same thing, so the round trip bought nothing.
+func subjectSourceID(subjectType *models.SubjectType) *models.SubjectSourceID {
+	source := userSourceID
+	if subjectType != nil && *subjectType == models.SubjectTypeGroup {
+		source = groupSourceID
+	}
+	return &source
+}
+
 // ToPermission converts a permission data transfer object to a permission object.
 func (p *PermissionDTO) ToPermission() *models.Permission {
 
 	// Extract the subject.
 	subject := &models.SubjectOut{
-		ID:          p.InternalSubjectID,
-		SubjectID:   p.SubjectID,
-		SubjectType: p.SubjectType,
+		ID:              p.InternalSubjectID,
+		SubjectID:       p.SubjectID,
+		SubjectType:     p.SubjectType,
+		SubjectSourceID: subjectSourceID(p.SubjectType),
 	}
 
 	// Extract the resource.

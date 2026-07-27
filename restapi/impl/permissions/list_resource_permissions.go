@@ -191,12 +191,6 @@ func BuildListResourcePermissionsHandler(
 			return listResourcePermissionsInternalServerError(err.Error())
 		}
 
-		// Add the subject source ID to the response body.
-		if err := grouperClient.AddSourceIDToPermissions(ctx, perms); err != nil {
-			logger.Log.Error(err)
-			return listResourcePermissionsInternalServerError(err.Error())
-		}
-
 		// Expand groups in the response body if we're supposed to.
 		if expandGroups {
 			perms, err = expandGroupPermissions(ctx, tx, grouperClient, perms, userSuffix)

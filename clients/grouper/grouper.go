@@ -8,8 +8,6 @@ import (
 	"github.com/cyverse-de/permissions/logger"
 	"github.com/cyverse-de/permissions/models"
 	"go.opentelemetry.io/otel"
-
-	"github.com/lib/pq"
 )
 
 const otelName = "github.com/cyverse-de/permissions/clients/grouper"
@@ -25,8 +23,6 @@ type GroupInfo struct {
 type Grouper interface {
 	IsGroupSource(sourceID models.SubjectSourceID) bool
 	GroupsForSubject(context.Context, string) ([]*GroupInfo, error)
-	AddSourceIDToPermissions(context.Context, []*models.Permission) error
-	AddSourceIDToPermission(context.Context, *models.Permission) error
 	ListUsersInGroup(context.Context, models.ExternalSubjectID) ([]*models.SubjectOut, error)
 }
 
@@ -86,50 +82,6 @@ func (gc *Client) GroupsForSubject(ctx context.Context, subjectID string) ([]*Gr
 	}
 
 	return groups, nil
-}
-
-// AddSourceIDToPermissions adds the subject source IDs to a slice of Permission objects.
-func (gc *Client) AddSourceIDToPermissions(ctx context.Context, permissions []*models.Permission) error {
-	ctx, span := otel.Tracer(otelName).Start(ctx, "AddSourceIDToPermissions")
-	defer span.End()
-
-	// Get a list of subject identifiers.
-	subjectIDs := make([]string, 0)
-	for _, permission := range permissions {
-		subjectIDs = append(subjectIDs, string(*permission.Subject.SubjectID))
-	}
-
-	// Query the database.
-	query := `SELECT subject_id, subject_source FROM grouper_members
-            WHERE subject_id = ANY($1)`
-	rows, err := gc.db.QueryContext(ctx, query, pq.Array(subjectIDs))
-	if err != nil {
-		return err
-	}
-	defer logger.LogClose(rows, "grouper members rows")
-
-	// Build a map from subject ID to source ID.
-	m := make(map[string]string)
-	for rows.Next() {
-		var subjectID, sourceID string
-		if err := rows.Scan(&subjectID, &sourceID); err != nil {
-			return err
-		}
-		m[subjectID] = sourceID
-	}
-
-	// Add the subject IDs to the permission objects.
-	for _, permission := range permissions {
-		sourceID := models.SubjectSourceID(m[string(*permission.Subject.SubjectID)])
-		permission.Subject.SubjectSourceID = &sourceID
-	}
-
-	return nil
-}
-
-// AddSourceIDToPermission adds the subject source ID to a permission object.
-func (gc *Client) AddSourceIDToPermission(ctx context.Context, permission *models.Permission) error {
-	return gc.AddSourceIDToPermissions(ctx, []*models.Permission{permission})
 }
 
 // ListUsersInGroup returns the list of users in the group with the given ID. Nested groups are supported, but only the

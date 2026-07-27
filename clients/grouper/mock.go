@@ -46,27 +46,6 @@ func (gc *MockGrouperClient) GroupsForSubject(_ context.Context, subjectID strin
 	return gc.groups[subjectID], nil
 }
 
-// AddSourceIDToPermissions adds the subject source ID to permissions using the group membership information in the
-// client struct.
-func (gc *MockGrouperClient) AddSourceIDToPermissions(_ context.Context, perms []*models.Permission) error {
-	userSourceID := models.SubjectSourceID("ldap")
-	groupSourceID := groupSubjectSource
-	for _, perm := range perms {
-		_, isGroup := gc.memberships[string(*perm.Subject.SubjectID)]
-		if isGroup {
-			perm.Subject.SubjectSourceID = &groupSourceID
-		} else {
-			perm.Subject.SubjectSourceID = &userSourceID
-		}
-	}
-	return nil
-}
-
-// AddSourceIDToPermission is a no-op for now.
-func (gc *MockGrouperClient) AddSourceIDToPermission(_ context.Context, _ *models.Permission) error {
-	return nil
-}
-
 // ListUsersInGroup obtains a list of group members from the memberships field in the mock Grouper client. No attempts
 // are made to mock nested groups at this time.
 func (gc *MockGrouperClient) ListUsersInGroup(

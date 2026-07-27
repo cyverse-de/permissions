@@ -132,12 +132,6 @@ func BuildBySubjectAndResourceHandler(
 			return bySubjectAndResourceInternalServerError(err.Error())
 		}
 
-		// Add the subject source ID to the results.
-		if err := grouperClient.AddSourceIDToPermissions(ctx, perms); err != nil {
-			logger.Log.Error(err)
-			return bySubjectAndResourceInternalServerError(err.Error())
-		}
-
 		return bySubjectAndResourceOk(perms)
 	}
 }

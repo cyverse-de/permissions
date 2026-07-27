@@ -99,11 +99,6 @@ func BuildPutPermissionHandler(
 			return putPermissionInternalServerError(err.Error())
 		}
 
-		// Add the subject source ID to the permission listing.
-		if err := grouperClient.AddSourceIDToPermission(ctx, permission); err != nil {
-			return putPermissionInternalServerError(err.Error())
-		}
-
 		return permissions.NewPutPermissionOK().WithPayload(permission)
 	}
 }

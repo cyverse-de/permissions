@@ -88,3 +88,36 @@ func TestAddSubjectCorrelatesDEUser(t *testing.T) {
 		}
 	})
 }
+
+// TestSourceIDDerivedFromSubjectType covers the source ID end to end, through a
+// handler and the real queries, for both subject types.
+//
+// It previously came from a second query against Grouper for every permission
+// listed; it is now derived from the subject type the query already selects.
+// Nothing else asserted the group case, so a regression here would have been
+// invisible.
+func TestSourceIDDerivedFromSubjectType(t *testing.T) {
+	if !shouldRun() {
+		return
+	}
+	db, schema := initdb(t)
+	addDefaultResourceTypes(db, schema, t)
+	addDefaultPermissions(db, schema)
+
+	perms := listResourcePermissions(db, schema, "analysis", "analysis1", false, nil)
+
+	seen := map[string]string{}
+	for _, p := range perms.Permissions {
+		if p.Subject.SubjectSourceID == nil {
+			t.Fatalf("no source ID for subject %s", *p.Subject.SubjectID)
+		}
+		seen[string(*p.Subject.SubjectType)] = string(*p.Subject.SubjectSourceID)
+	}
+
+	if got := seen["user"]; got != "ldap" {
+		t.Errorf("user source ID = %q, want \"ldap\"", got)
+	}
+	if got := seen["group"]; got != "g:gsa" {
+		t.Errorf("group source ID = %q, want \"g:gsa\"", got)
+	}
+}

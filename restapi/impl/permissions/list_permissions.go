@@ -49,12 +49,6 @@ func BuildListPermissionsHandler(
 			return internalServerError(err.Error())
 		}
 
-		// Add subject sources to the permission list.
-		if err = grouper.AddSourceIDToPermissions(ctx, result); err != nil {
-			logger.Log.Error(err)
-			return internalServerError(err.Error())
-		}
-
 		// Return the results.
 		return permissions.NewListPermissionsOK().WithPayload(&models.PermissionList{Permissions: result})
 	}
