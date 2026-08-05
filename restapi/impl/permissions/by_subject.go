@@ -72,14 +72,14 @@ func BuildBySubjectHandler(
 		// Perform the lookup.
 		var perms []*models.Permission
 		if minLevel == nil {
-			perms, err = permsdb.PermissionsForSubjects(ctx, tx, string(subjectID), lookup)
+			perms, err = permsdb.PermissionsForSubject(ctx, tx, string(subjectID), lookup)
 			if err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
 				return bySubjectInternalServerError(err.Error())
 			}
 		} else {
-			perms, err = permsdb.PermissionsForSubjectsMinLevel(ctx, tx, string(subjectID), lookup, *minLevel)
+			perms, err = permsdb.PermissionsForSubjectMinLevel(ctx, tx, string(subjectID), lookup, *minLevel)
 			if err != nil {
 				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)

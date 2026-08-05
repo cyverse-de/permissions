@@ -53,7 +53,6 @@ func rowsToAbbreviatedPermissionList(rows *sql.Rows) ([]*models.AbbreviatedPermi
 	return permissions, nil
 }
 
-// ListPermissions lists all existing permissions.
 // subjectScope builds the clauses that restrict a permission query to one
 // subject, optionally expanded to the groups that subject belongs to.
 //
@@ -75,6 +74,11 @@ func subjectScope(lookup bool) (prefix, where string) {
 		return "", "s.subject_id = $1"
 	}
 
+	// A group-typed requester is safe here only because
+	// group_effective_members.member_type is CHECK-pinned to 'user' in the
+	// de-database schema, so a group can never appear as a member_id and the
+	// expansion adds nothing to it. Relaxing that constraint would change
+	// authorization results.
 	prefix = `WITH requester AS (
 	              SELECT id FROM subjects WHERE subject_id = $1
 	          ),
@@ -89,6 +93,7 @@ func subjectScope(lookup bool) (prefix, where string) {
 	return prefix, "p.subject_id IN (SELECT id FROM subject_ids)"
 }
 
+// ListPermissions lists all existing permissions.
 func ListPermissions(ctx context.Context, tx *sql.Tx) ([]*models.Permission, error) {
 
 	// Query the database.
@@ -143,8 +148,9 @@ func ListResourcePermissions(ctx context.Context, tx *sql.Tx, resourceTypeName, 
 	return rowsToPermissionList(rows)
 }
 
-// PermissionsForSubjects lists permissions granted to zero or more subjects.
-func PermissionsForSubjects(ctx context.Context, tx *sql.Tx, subjectID string, lookup bool) ([]*models.Permission, error) {
+// PermissionsForSubject lists permissions granted to a subject, expanded to the
+// subject's groups when lookup is true.
+func PermissionsForSubject(ctx context.Context, tx *sql.Tx, subjectID string, lookup bool) ([]*models.Permission, error) {
 	prefix, subjectWhere := subjectScope(lookup)
 
 	// Query the database.
@@ -174,8 +180,9 @@ func PermissionsForSubjects(ctx context.Context, tx *sql.Tx, subjectID string, l
 	return rowsToPermissionList(rows)
 }
 
-// PermissionsForSubjectsMinLevel lists permissions of at least the given level granted to zero or more subjects.
-func PermissionsForSubjectsMinLevel(ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, minLevel string) ([]*models.Permission, error) {
+// PermissionsForSubjectMinLevel lists permissions of at least the given level granted to a subject, expanded
+// to the subject's groups when lookup is true.
+func PermissionsForSubjectMinLevel(ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, minLevel string) ([]*models.Permission, error) {
 	prefix, subjectWhere := subjectScope(lookup)
 
 	// Query the database.
@@ -206,9 +213,9 @@ func PermissionsForSubjectsMinLevel(ctx context.Context, tx *sql.Tx, subjectID s
 	return rowsToPermissionList(rows)
 }
 
-// PermissionsForSubjectsAndResourceType lists permissions that have been granted to zero or more subjects for the
-// specified type of resource.
-func PermissionsForSubjectsAndResourceType(
+// PermissionsForSubjectAndResourceType lists permissions that have been granted to a subject for the specified
+// type of resource, expanded to the subject's groups when lookup is true.
+func PermissionsForSubjectAndResourceType(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName string,
 ) ([]*models.Permission, error) {
 	prefix, subjectWhere := subjectScope(lookup)
@@ -241,9 +248,9 @@ func PermissionsForSubjectsAndResourceType(
 	return rowsToPermissionList(rows)
 }
 
-// PermissionsForSubjectsAndResourceTypeMinLevel lists permissions of at least the minimum level that have been
-// granted to zero or more subjects for the specified type of resource.
-func PermissionsForSubjectsAndResourceTypeMinLevel(
+// PermissionsForSubjectAndResourceTypeMinLevel lists permissions of at least the minimum level that have been
+// granted to a subject for the specified type of resource, expanded to the subject's groups when lookup is true.
+func PermissionsForSubjectAndResourceTypeMinLevel(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName, minLevel string,
 ) ([]*models.Permission, error) {
 	prefix, subjectWhere := subjectScope(lookup)
@@ -348,8 +355,9 @@ func AbbreviatedPermissionsForSubjectAndResourceType(
 	return rowsToAbbreviatedPermissionList(rows)
 }
 
-// PermissionsForSubjectsAndResource lists permissions granted to zero or more subjects for a specific resource.
-func PermissionsForSubjectsAndResource(
+// PermissionsForSubjectAndResource lists permissions granted to a subject for a specific resource, expanded to
+// the subject's groups when lookup is true.
+func PermissionsForSubjectAndResource(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName, resourceName string,
 ) ([]*models.Permission, error) {
 	prefix, subjectWhere := subjectScope(lookup)
@@ -383,9 +391,9 @@ func PermissionsForSubjectsAndResource(
 	return rowsToPermissionList(rows)
 }
 
-// PermissionsForSubjectsAndResourceMinLevel lists permissions of at least the minimum level that have been granted
-// to zero or more subjects for a specific resource.
-func PermissionsForSubjectsAndResourceMinLevel(
+// PermissionsForSubjectAndResourceMinLevel lists permissions of at least the minimum level that have been
+// granted to a subject for a specific resource, expanded to the subject's groups when lookup is true.
+func PermissionsForSubjectAndResourceMinLevel(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName, resourceName, minLevel string,
 ) ([]*models.Permission, error) {
 	prefix, subjectWhere := subjectScope(lookup)
