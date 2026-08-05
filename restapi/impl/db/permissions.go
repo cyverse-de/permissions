@@ -639,15 +639,47 @@ var ErrTooManySubjects = errors.New("too many subjects after group expansion")
 // to the database while serving a GET. Effective members are already subjects
 // here, so nothing needs creating and the whole expansion is one statement.
 //
-// maxSubjects bounds the result. `de-users` contains essentially every DE user,
-// so expanding a public resource's permissions is unbounded work; it is slow
-// enough over HTTP today that nobody does it, and making it fast is exactly what
-// would invite someone to. Exceeding the bound is an error rather than a
-// truncation, because a silently short list of who can see a resource is worse
-// than a refusal.
+// maxSubjects bounds the work as well as the result. `de-users` contains
+// essentially every DE user, so expanding a public resource's permissions is
+// unbounded work; it is slow enough over HTTP today that nobody does it, and
+// making it fast is exactly what would invite someone to. A membership count
+// runs first so that an over-cap request is refused for the price of an index
+// scan instead of the full expansion and sort it is refusing to do; the LIMIT
+// on the expansion itself remains as a backstop. Exceeding the bound is an
+// error rather than a truncation, because a silently short list of who can see
+// a resource is worse than a refusal.
 func ExpandedResourcePermissions(
 	ctx context.Context, tx *sql.Tx, resourceTypeName, resourceName string, maxSubjects int,
 ) ([]*models.Permission, error) {
+
+	// The count reads only (group_id, member_id) from group_effective_members so
+	// it can be answered from the primary key alone. It may overcount -- a user
+	// holding both a direct grant and a group membership is counted twice -- but
+	// never undercounts, so it can only refuse expansions already near the cap,
+	// and refusing early is the point.
+	countQuery := `WITH matching AS (
+	              SELECT p.subject_id
+	                FROM permissions p
+	                JOIN resources r ON r.id = p.resource_id
+	                JOIN resource_types rt ON rt.id = r.resource_type_id
+	               WHERE rt.name = $1 AND r.name = $2
+	          )
+	          SELECT (SELECT count(*)
+	                    FROM matching m
+	                    JOIN subjects s ON s.id = m.subject_id
+	                   WHERE s.subject_type = 'user')
+	               + (SELECT count(DISTINCT em.member_id)
+	                    FROM matching m
+	                    JOIN subjects gs ON gs.id = m.subject_id AND gs.subject_type = 'group'
+	                    JOIN group_effective_members em ON em.group_id = gs.id)`
+	var subjectCount int
+	if err := tx.QueryRowContext(ctx, countQuery, resourceTypeName, resourceName).Scan(&subjectCount); err != nil {
+		return nil, err
+	}
+	if subjectCount > maxSubjects {
+		return nil, fmt.Errorf("%w: %s/%s expands to more than %d subjects",
+			ErrTooManySubjects, resourceTypeName, resourceName, maxSubjects)
+	}
 
 	query := `WITH matching AS (
 	              SELECT p.id, p.subject_id, p.permission_level_id,
@@ -679,8 +711,8 @@ func ExpandedResourcePermissions(
 	           ORDER BY e.internal_subject_id, pl.precedence
 	           LIMIT $3`
 
-	// One more than the bound, so that exceeding it is detectable without
-	// counting the whole expansion first.
+	// One more than the bound, so that exceeding it stays detectable even if
+	// the pre-check ever disagrees with the expansion.
 	rows, err := tx.QueryContext(ctx, query, resourceTypeName, resourceName, maxSubjects+1)
 	if err != nil {
 		return nil, err

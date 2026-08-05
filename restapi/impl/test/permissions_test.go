@@ -3,6 +3,7 @@ package test
 import (
 	"database/sql"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/cyverse-de/permissions/logger"
@@ -151,10 +152,11 @@ func listResourcePermissionsAttempt(
 	db *sql.DB,
 	schema, resourceType, resourceName string,
 	expandGroups bool,
+	maxExpandedSubjects int,
 ) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildListResourcePermissionsHandler(db, schema, testMaxExpandedSubjects)
+	handler := impl.BuildListResourcePermissionsHandler(db, schema, maxExpandedSubjects)
 
 	// Attempt to list the permissions for the resource.
 	params := permissions.ListResourcePermissionsParams{
@@ -171,7 +173,7 @@ func listResourcePermissions(
 	schema, resourceType, resourceName string,
 	expandGroups bool,
 ) *models.PermissionList {
-	responder := listResourcePermissionsAttempt(db, schema, resourceType, resourceName, expandGroups)
+	responder := listResourcePermissionsAttempt(db, schema, resourceType, resourceName, expandGroups, testMaxExpandedSubjects)
 	return responder.(*permissions.ListResourcePermissionsOK).Payload
 }
 
@@ -875,6 +877,35 @@ func TestListResourcePermissionsExpandGroups(t *testing.T) {
 	// Verify that we got the expected results.
 	checkPermForSubject(t, perms, "app2", "s1", "write")
 	checkPermForSubject(t, perms, "app2", "s2", "write")
+}
+
+func TestListResourcePermissionsExpandGroupsTooManySubjects(t *testing.T) {
+	if !shouldRun() {
+		return
+	}
+
+	// Initialize the database.
+	db, schema := initdb(t)
+	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
+
+	// Add some permissions.
+	addDefaultPermissions(db, schema)
+
+	// The pre-check counts app1 as four subjects (two direct user grants plus
+	// two distinct group members), so a cap of two must refuse the expansion.
+	responder := listResourcePermissionsAttempt(db, schema, "app", "app1", true, 2)
+	errorOut := responder.(*permissions.ListResourcePermissionsInternalServerError).Payload
+	if !strings.Contains(*errorOut.Reason, "too many subjects") {
+		t.Errorf("unexpected failure reason: %s", *errorOut.Reason)
+	}
+
+	// A cap that accommodates the pre-check count must still serve the request.
+	responder = listResourcePermissionsAttempt(db, schema, "app", "app1", true, 4)
+	perms := responder.(*permissions.ListResourcePermissionsOK).Payload.Permissions
+	if len(perms) != 3 {
+		t.Fatalf("unexpected number of results: %d", len(perms))
+	}
 }
 
 func TestCopyPermissions(t *testing.T) {
