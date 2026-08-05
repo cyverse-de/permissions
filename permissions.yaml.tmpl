@@ -6,7 +6,22 @@ db:
   {{ with $v := (key (printf "%s/permissions-db/uri" $base)) }}uri: {{ $v }}{{ end }}
 {{- end }}
 
+# Appended to a bare username to find the matching public.users row when this
+# service creates a subject. Shares a value with the groups service; the two
+# must agree or they will correlate subjects differently.
+users:
+  suffix: "{{ keyOrDefault (printf "%s/permissions/user-suffix" $base) "@iplantcollaborative.org" }}"
+
+permissions:
+  # Caps how many subjects one resource's permissions may expand to when a
+  # caller asks for group expansion. de-users contains essentially every DE
+  # user, so an uncapped expansion of a public resource is unbounded work.
+  max_expanded_subjects: {{ keyOrDefault (printf "%s/permissions/max-expanded-subjects" $base) "10000" }}
+
 {{- if tree (printf "%s/grouper-db" $base) }}
+# Retained for rollback only: current builds ignore this section, but the
+# previous (Grouper-reading) image fails to start without it. Remove once the
+# rollback window has closed.
 grouperdb:
   {{ with $v := (key (printf "%s/grouper-db/uri" $base)) }}uri: {{ $v }}{{ end }}
   folder_name_prefix: "iplant:de:{{ env "DE_ENV" }}"
