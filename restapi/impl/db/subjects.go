@@ -74,17 +74,46 @@ func AddSubject(
                  WHERE $4::boolean
                    AND u.username = $1::text || $3::text
                    AND NOT EXISTS (SELECT 1 FROM subjects o WHERE o.user_id = u.id)))
-            RETURNING id, subject_id, subject_type`
+            RETURNING id, subject_id, subject_type, user_id`
 	row := tx.QueryRowContext(ctx, query,
 		string(subjectID), string(subjectType), userSuffix,
 		subjectType == models.SubjectTypeUser)
 
 	// Return the subject information.
 	var subjectDto SubjectDTO
-	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType); err != nil {
+	var userID sql.NullString
+	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType, &userID); err != nil {
 		return nil, err
 	}
+	if subjectType == models.SubjectTypeUser && !userID.Valid {
+		warnIfUserClaimed(ctx, tx, subjectID, userSuffix)
+	}
 	return subjectDto.ToSubjectOut(), nil
+}
+
+// warnIfUserClaimed distinguishes the two reasons a user subject can come back
+// uncorrelated. No users row for the suffixed username is the common case --
+// the user simply hasn't logged in to the DE yet -- and stays silent. A users
+// row that exists anyway means the NOT EXISTS guard in AddSubject blocked
+// because another subject already claims it, which is worth a warning: the new
+// subject will never join to public.users and someone should look at which
+// subject holds the correlation.
+func warnIfUserClaimed(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID, userSuffix string) {
+	var userRowExists bool
+	err := tx.QueryRowContext(ctx,
+		"SELECT EXISTS (SELECT 1 FROM public.users u WHERE u.username = $1::text || $2::text)",
+		string(subjectID), userSuffix,
+	).Scan(&userRowExists)
+	if err != nil {
+		logger.Log.Warnf("unable to check the DE user correlation for subject %s: %s", subjectID, err)
+		return
+	}
+	if userRowExists {
+		logger.Log.Warnf(
+			"subject %s was created without a correlation to DE user %s%s even though that user exists; "+
+				"this usually means another subject already claims the user's row",
+			subjectID, subjectID, userSuffix)
+	}
 }
 
 // UpdateSubject updates a subject in the database.
