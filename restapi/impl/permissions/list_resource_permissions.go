@@ -2,7 +2,6 @@ package permissions
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/cyverse-de/permissions/logger"
@@ -55,16 +54,13 @@ func BuildListResourcePermissionsHandler(
 		// their members when asked.
 		var perms []*models.Permission
 		if expandGroups {
+			// NOTE: an ErrTooManySubjects refusal deserves a 4xx -- the request
+			// is well formed and the server is declining to materialize an
+			// unbounded response -- but the generated contract for this endpoint
+			// offers only 200 and 500. Adding one means changing swagger.yml and
+			// regenerating, so for now it falls through to the generic 500.
 			perms, err = permsdb.ExpandedResourcePermissions(
 				ctx, tx, resourceTypeName, resourceName, maxExpandedSubjects)
-			// NOTE: this deserves a 4xx -- the request is well formed and the
-			// server is declining to materialize an unbounded response -- but the
-			// generated contract for this endpoint offers only 200 and 500.
-			// Adding one means changing swagger.yml and regenerating.
-			if errors.Is(err, permsdb.ErrTooManySubjects) {
-				logger.Log.Error(err)
-				return listResourcePermissionsInternalServerError(err.Error())
-			}
 		} else {
 			perms, err = permsdb.ListResourcePermissions(ctx, tx, resourceTypeName, resourceName)
 		}
