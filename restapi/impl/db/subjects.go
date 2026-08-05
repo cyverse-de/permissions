@@ -245,37 +245,6 @@ func GetSubject(
 	return rowsToSubject(rows, duplicateErr)
 }
 
-// GetOrAddSubject adds a subject to the database if necessary and returns the subject.
-func GetOrAddSubject(
-	ctx context.Context,
-	tx *sql.Tx,
-	subjectID models.ExternalSubjectID,
-	subjectType models.SubjectType,
-	userSuffix string,
-) (*models.SubjectOut, error) {
-
-	// Attempt to load the subject from the database.
-	subject, err := GetSubject(ctx, tx, subjectID, subjectType)
-	if err != nil {
-		return nil, err
-	}
-	if subject != nil {
-		return subject, nil
-	}
-
-	// Check for a duplicate subject ID in the database before inserting one.
-	duplicate, err := GetSubjectByExternalID(ctx, tx, subjectID)
-	if err != nil {
-		return nil, err
-	}
-	if duplicate != nil {
-		return nil, fmt.Errorf("duplicate subject found for subject ID %s", subjectID)
-	}
-
-	// Add the subject to the database.
-	return AddSubject(ctx, tx, subjectID, subjectType, userSuffix)
-}
-
 // GetSubjectByExternalID returns information about the subjects with the given external ID.
 func GetSubjectByExternalID(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID) (*models.SubjectOut, error) {
 
