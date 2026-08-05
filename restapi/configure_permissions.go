@@ -133,8 +133,20 @@ func initService() error {
 	}
 
 	schema = cfg.GetString("db.schema")
+
+	// Fail fast on config values that would break every request that uses them
+	// rather than surfacing as odd behavior mid-operation. The defaults above
+	// are valid, so a failure here means the config file overrode them.
 	userSuffix = cfg.GetString("users.suffix")
+	if userSuffix == "" {
+		return fmt.Errorf("users.suffix must be non-empty; without it subjects cannot be correlated with DE users")
+	}
 	maxExpandedSubjects = cfg.GetInt("permissions.max_expanded_subjects")
+	if maxExpandedSubjects <= 0 {
+		return fmt.Errorf(
+			"permissions.max_expanded_subjects must be greater than zero, not %d; "+
+				"a non-positive cap would reject every expand_groups request", maxExpandedSubjects)
+	}
 
 	if err := db.Ping(); err != nil {
 		return err
