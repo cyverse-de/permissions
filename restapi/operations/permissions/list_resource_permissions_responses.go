@@ -55,6 +55,51 @@ func (o *ListResourcePermissionsOK) WriteResponse(rw http.ResponseWriter, produc
 	}
 }
 
+// ListResourcePermissionsBadRequestCode is the HTTP code returned for type ListResourcePermissionsBadRequest
+const ListResourcePermissionsBadRequestCode int = 400
+
+/*
+ListResourcePermissionsBadRequest Bad Request
+
+swagger:response listResourcePermissionsBadRequest
+*/
+type ListResourcePermissionsBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ErrorOut `json:"body,omitempty"`
+}
+
+// NewListResourcePermissionsBadRequest creates ListResourcePermissionsBadRequest with default headers values
+func NewListResourcePermissionsBadRequest() *ListResourcePermissionsBadRequest {
+
+	return &ListResourcePermissionsBadRequest{}
+}
+
+// WithPayload adds the payload to the list resource permissions bad request response
+func (o *ListResourcePermissionsBadRequest) WithPayload(payload *models.ErrorOut) *ListResourcePermissionsBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the list resource permissions bad request response
+func (o *ListResourcePermissionsBadRequest) SetPayload(payload *models.ErrorOut) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *ListResourcePermissionsBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
 // ListResourcePermissionsInternalServerErrorCode is the HTTP code returned for type ListResourcePermissionsInternalServerError
 const ListResourcePermissionsInternalServerErrorCode int = 500
 

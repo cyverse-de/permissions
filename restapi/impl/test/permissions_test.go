@@ -857,7 +857,7 @@ func TestListResourcePermissionsExpandGroupsTooManySubjects(t *testing.T) {
 	// The pre-check counts app1 as four subjects (two direct user grants plus
 	// two distinct group members), so a cap of two must refuse the expansion.
 	responder := listResourcePermissionsAttempt(db, schema, "app", "app1", true, 2)
-	errorOut := responder.(*permissions.ListResourcePermissionsInternalServerError).Payload
+	errorOut := responder.(*permissions.ListResourcePermissionsBadRequest).Payload
 	if !strings.Contains(*errorOut.Reason, "too many subjects") {
 		t.Errorf("unexpected failure reason: %s", *errorOut.Reason)
 	}

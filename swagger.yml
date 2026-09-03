@@ -747,6 +747,8 @@ paths:
           description: "OK"
           schema:
             $ref: "#/definitions/permission_list"
+        400:
+          $ref: "#/responses/bad_request"
         500:
           $ref: "#/responses/internal_server_error"
   /permissions/resources/{resource_type}/{resource_name}/subjects/{subject_type}/{subject_id}:

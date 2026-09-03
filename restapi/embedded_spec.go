@@ -187,6 +187,9 @@ func init() {
               "$ref": "#/definitions/permission_list"
             }
           },
+          "400": {
+            "$ref": "#/responses/bad_request"
+          },
           "500": {
             "$ref": "#/responses/internal_server_error"
           }
@@ -1685,6 +1688,12 @@ func init() {
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/permission_list"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error_out"
             }
           },
           "500": {
