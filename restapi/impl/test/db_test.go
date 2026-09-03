@@ -68,11 +68,10 @@ func initdb(t *testing.T) (*sql.DB, string) {
 
 // addGroupMembership records a group's membership in the database.
 //
-// Group expansion now reads group_effective_members rather than calling out to
-// Grouper, so the memberships the lookup tests rely on have to exist as rows.
-// The closure is built by the same SQL function the services use, so the
-// fixture exercises the real maintenance path rather than a hand-written
-// approximation of it.
+// Group expansion reads group_effective_members, so the memberships the lookup
+// tests rely on have to exist as rows. The closure is built by the same SQL
+// function the services use, so the fixture exercises the real maintenance path
+// rather than a hand-written approximation of it.
 func addGroupMembership(t *testing.T, db *sql.DB, schema, groupID string, usernames ...string) {
 	t.Helper()
 

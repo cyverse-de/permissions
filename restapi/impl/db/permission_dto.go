@@ -25,10 +25,6 @@ const (
 )
 
 // subjectSourceID derives a subject's source from its type.
-//
-// This was previously a second query against Grouper for every permission
-// listed. The subject type is already selected by every permission query and
-// says the same thing, so the round trip bought nothing.
 func subjectSourceID(subjectType *models.SubjectType) *models.SubjectSourceID {
 	source := userSourceID
 	if subjectType != nil && *subjectType == models.SubjectTypeGroup {

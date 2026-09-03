@@ -67,9 +67,7 @@ func rowsToAbbreviatedPermissionList(rows *sql.Rows) ([]*models.AbbreviatedPermi
 // subject, optionally expanded to the groups that subject belongs to.
 //
 // The expansion reads group_effective_members, the materialized transitive
-// closure, so it stays a plain join no matter how deeply groups nest. It
-// replaces a call to another service whose result was fed back in as a literal
-// array.
+// closure, so it stays a plain join no matter how deeply groups nest.
 //
 // Two shapes rather than one query with a conditional arm: this is the query
 // behind every authorization decision in the DE, and swapping a literal array of
@@ -648,11 +646,6 @@ var ErrTooManySubjects = errors.New("too many subjects after group expansion")
 // ExpandedResourcePermissions lists a resource's permissions with each group
 // permission replaced by the group's effective members, keeping the strongest
 // level per subject.
-//
-// This replaces a loop that asked another service for each group's membership in
-// turn, then created a subject row for any member it had never seen -- writing
-// to the database while serving a GET. Effective members are already subjects
-// here, so nothing needs creating and the whole expansion is one statement.
 //
 // maxSubjects bounds the work as well as the result. `de-users` contains
 // essentially every DE user, so expanding a public resource's permissions is
