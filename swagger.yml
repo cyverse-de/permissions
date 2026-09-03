@@ -607,9 +607,9 @@ paths:
         - subjects
       summary: "Add a Subject"
       description: >-
-        Adds a subject (an entity to which permissions may be granted) to the database. For full use of the
-        permissions service, the subject should be present in Grouper and have the same subject ID in Grouper
-        and the permissions service.
+        Adds a subject (an entity to which permissions may be granted) to the database. A user subject is
+        correlated with the Discovery environment user account whose username is the subject ID followed by the
+        configured user suffix, if such an account exists.
       parameters:
         - description: "The new subject to add."
           in: body
@@ -639,8 +639,8 @@ paths:
         - subjects
       summary: "Update a Subject"
       description: >-
-        Updates a subject in the database. For full use of the permissions service, the subject should be present
-        in Grouper and have the same subject ID in Grouper and the permissions service.
+        Updates a subject in the database. The correlation with the Discovery environment user account is
+        recomputed from the new subject ID and subject type.
       parameters:
         - description: "The new subject information."
           in: body

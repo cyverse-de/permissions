@@ -31,7 +31,7 @@ func NewAddSubject(ctx *middleware.Context, handler AddSubjectHandler) *AddSubje
 
 # Add a Subject
 
-Adds a subject (an entity to which permissions may be granted) to the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.
+Adds a subject (an entity to which permissions may be granted) to the database. A user subject is correlated with the Discovery environment user account whose username is the subject ID followed by the configured user suffix, if such an account exists.
 */
 type AddSubject struct {
 	Context *middleware.Context

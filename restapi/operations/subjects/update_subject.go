@@ -31,7 +31,7 @@ func NewUpdateSubject(ctx *middleware.Context, handler UpdateSubjectHandler) *Up
 
 # Update a Subject
 
-Updates a subject in the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.
+Updates a subject in the database. The correlation with the Discovery environment user account is recomputed from the new subject ID and subject type.
 */
 type UpdateSubject struct {
 	Context *middleware.Context

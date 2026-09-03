@@ -932,7 +932,7 @@ func init() {
         }
       },
       "post": {
-        "description": "Adds a subject (an entity to which permissions may be granted) to the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.",
+        "description": "Adds a subject (an entity to which permissions may be granted) to the database. A user subject is correlated with the Discovery environment user account whose username is the subject ID followed by the configured user suffix, if such an account exists.",
         "tags": [
           "subjects"
         ],
@@ -1006,7 +1006,7 @@ func init() {
     },
     "/subjects/{id}": {
       "put": {
-        "description": "Updates a subject in the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.",
+        "description": "Updates a subject in the database. The correlation with the Discovery environment user account is recomputed from the new subject ID and subject type.",
         "tags": [
           "subjects"
         ],
@@ -2540,7 +2540,7 @@ func init() {
         }
       },
       "post": {
-        "description": "Adds a subject (an entity to which permissions may be granted) to the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.",
+        "description": "Adds a subject (an entity to which permissions may be granted) to the database. A user subject is correlated with the Discovery environment user account whose username is the subject ID followed by the configured user suffix, if such an account exists.",
         "tags": [
           "subjects"
         ],
@@ -2626,7 +2626,7 @@ func init() {
     },
     "/subjects/{id}": {
       "put": {
-        "description": "Updates a subject in the database. For full use of the permissions service, the subject should be present in Grouper and have the same subject ID in Grouper and the permissions service.",
+        "description": "Updates a subject in the database. The correlation with the Discovery environment user account is recomputed from the new subject ID and subject type.",
         "tags": [
           "subjects"
         ],
