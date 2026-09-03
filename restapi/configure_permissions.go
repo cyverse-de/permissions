@@ -234,7 +234,7 @@ func configureAPI(api *operations.PermissionsAPI) http.Handler {
 	)
 
 	api.SubjectsUpdateSubjectHandler = subjects.UpdateSubjectHandlerFunc(
-		subjects_impl.BuildUpdateSubjectHandler(db, schema),
+		subjects_impl.BuildUpdateSubjectHandler(db, schema, userSuffix),
 	)
 
 	api.SubjectsDeleteSubjectHandler = subjects.DeleteSubjectHandlerFunc(

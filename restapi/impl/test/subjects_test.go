@@ -74,7 +74,7 @@ func updateSubjectAttempt(
 ) middleware.Responder {
 
 	// Build the request handler.
-	handler := impl.BuildUpdateSubjectHandler(db, schema)
+	handler := impl.BuildUpdateSubjectHandler(db, schema, testUserSuffix)
 
 	// Attempt to update the subject.
 	subjectIn := &models.SubjectIn{SubjectID: &subjectID, SubjectType: &subjectType}

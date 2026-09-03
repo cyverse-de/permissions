@@ -99,10 +99,10 @@ func AddSubject(
 // warnIfUserClaimed distinguishes the two reasons a user subject can come back
 // uncorrelated. No users row for the suffixed username is the common case --
 // the user simply hasn't logged in to the DE yet -- and stays silent. A users
-// row that exists anyway means the NOT EXISTS guard in AddSubject blocked
-// because another subject already claims it, which is worth a warning: the new
-// subject will never join to public.users and someone should look at which
-// subject holds the correlation.
+// row that exists anyway means the NOT EXISTS guard blocked because another
+// subject already claims it, which is worth a warning: the subject will never
+// join to public.users and someone should look at which subject holds the
+// correlation.
 func warnIfUserClaimed(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID, userSuffix string) {
 	var userRowExists bool
 	err := tx.QueryRowContext(ctx,
@@ -115,31 +115,51 @@ func warnIfUserClaimed(ctx context.Context, tx *sql.Tx, subjectID models.Externa
 	}
 	if userRowExists {
 		logger.Log.Warnf(
-			"subject %s was created without a correlation to DE user %s%s even though that user exists; "+
+			"subject %s has no correlation to DE user %s%s even though that user exists; "+
 				"this usually means another subject already claims the user's row",
 			subjectID, subjectID, userSuffix)
 	}
 }
 
 // UpdateSubject updates a subject in the database.
+//
+// The DE user correlation is recomputed from the new subject ID and type rather
+// than carried over: the old value names the user the subject used to be, and
+// subjects_user_id_is_user rejects it outright once the type becomes group.
 func UpdateSubject(
 	ctx context.Context,
 	tx *sql.Tx,
 	id models.InternalSubjectID,
 	subjectID models.ExternalSubjectID,
 	subjectType models.SubjectType,
+	userSuffix string,
 ) (*models.SubjectOut, error) {
 
 	// Update the database.
-	query := `UPDATE subjects SET subject_id = $1, subject_type = $2
+	// The subject type is passed a second time as a boolean rather than reused
+	// in the WHERE clause: $2 is an enum in the column list, and comparing it to
+	// a text literal makes PostgreSQL deduce two types for one parameter. The
+	// row being updated is excluded from the NOT EXISTS guard so that an update
+	// leaving the subject ID alone keeps the correlation it already holds.
+	query := `UPDATE subjects SET subject_id = $1::text, subject_type = $2, user_id = (
+                SELECT u.id FROM public.users u
+                 WHERE $5::boolean
+                   AND u.username = $1::text || $4::text
+                   AND NOT EXISTS (SELECT 1 FROM subjects o WHERE o.user_id = u.id AND o.id != $3))
             WHERE id = $3
-            RETURNING id, subject_id, subject_type`
-	row := tx.QueryRowContext(ctx, query, string(subjectID), string(subjectType), string(id))
+            RETURNING id, subject_id, subject_type, user_id`
+	row := tx.QueryRowContext(ctx, query,
+		string(subjectID), string(subjectType), string(id), userSuffix,
+		subjectType == models.SubjectTypeUser)
 
 	// Return the subject information.
 	var subjectDto SubjectDTO
-	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType); err != nil {
+	var userID sql.NullString
+	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType, &userID); err != nil {
 		return nil, err
+	}
+	if subjectType == models.SubjectTypeUser && !userID.Valid {
+		warnIfUserClaimed(ctx, tx, subjectID, userSuffix)
 	}
 	return subjectDto.ToSubjectOut(), nil
 }

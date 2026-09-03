@@ -87,17 +87,64 @@ func TestAddSubjectCorrelatesDEUser(t *testing.T) {
 	})
 }
 
+// TestUpdateSubjectRecorrelatesDEUser covers keeping subjects.user_id in step
+// with the subject a row now describes. A stale correlation attributes the
+// renamed subject's permissions to the user it used to be, and a stale one on a
+// row that becomes a group violates subjects_user_id_is_user outright.
+func TestUpdateSubjectRecorrelatesDEUser(t *testing.T) {
+	skipUnlessIntegration(t)
+	db, schema := initdb(t)
+
+	aliceID := deUserID(t, db, "test-alice"+testUserSuffix)
+	bobID := deUserID(t, db, "test-bob"+testUserSuffix)
+
+	t.Run("a rename moves the correlation to the new user", func(t *testing.T) {
+		subject := addSubject(db, schema, models.ExternalSubjectID("test-alice"), models.SubjectType("user"))
+		if got := subjectUserID(t, db, schema, "test-alice"); got == nil || *got != aliceID {
+			t.Fatalf("correlated with %v, want %s", got, aliceID)
+		}
+
+		updateSubject(db, schema, *subject.ID, models.ExternalSubjectID("test-bob"), models.SubjectType("user"))
+
+		got := subjectUserID(t, db, schema, "test-bob")
+		if got == nil {
+			t.Fatal("expected the renamed subject to be correlated")
+		}
+		if *got != bobID {
+			t.Errorf("correlated with %s, want %s", *got, bobID)
+		}
+	})
+
+	t.Run("an unchanged subject ID keeps its correlation", func(t *testing.T) {
+		subject := addSubject(db, schema, models.ExternalSubjectID("test-alice"), models.SubjectType("user"))
+
+		updateSubject(db, schema, *subject.ID, models.ExternalSubjectID("test-alice"), models.SubjectType("user"))
+
+		if got := subjectUserID(t, db, schema, "test-alice"); got == nil || *got != aliceID {
+			t.Errorf("correlated with %v, want %s", got, aliceID)
+		}
+	})
+
+	t.Run("becoming a group clears the correlation", func(t *testing.T) {
+		deUserID(t, db, "test-becomes-group"+testUserSuffix)
+		subject := addSubject(db, schema, models.ExternalSubjectID("test-becomes-group"), models.SubjectType("user"))
+		if subjectUserID(t, db, schema, "test-becomes-group") == nil {
+			t.Fatal("expected the subject to start out correlated")
+		}
+
+		updateSubject(db, schema, *subject.ID, models.ExternalSubjectID("test-becomes-group"), models.SubjectType("group"))
+
+		if got := subjectUserID(t, db, schema, "test-becomes-group"); got != nil {
+			t.Errorf("expected no correlation for a group, got %s", *got)
+		}
+	})
+}
+
 // TestSourceIDDerivedFromSubjectType covers the source ID end to end, through a
-// handler and the real queries, for both subject types.
-//
-// It previously came from a second query against Grouper for every permission
-// listed; it is now derived from the subject type the query already selects.
-// Nothing else asserted the group case, so a regression here would have been
-// invisible.
+// handler and the real queries, for both subject types. Nothing else asserts the
+// group case, so a regression there would otherwise be invisible.
 func TestSourceIDDerivedFromSubjectType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 	db, schema := initdb(t)
 	addDefaultResourceTypes(db, schema, t)
 	addDefaultPermissions(db, schema)

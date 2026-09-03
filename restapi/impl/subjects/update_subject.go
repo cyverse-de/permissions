@@ -13,7 +13,7 @@ import (
 )
 
 // BuildUpdateSubjectHandler builds the request handler for the update subject endpoint.
-func BuildUpdateSubjectHandler(db *sql.DB, schema string) func(subjects.UpdateSubjectParams) middleware.Responder {
+func BuildUpdateSubjectHandler(db *sql.DB, schema, userSuffix string) func(subjects.UpdateSubjectParams) middleware.Responder {
 
 	// Return the handler function.
 	return func(params subjects.UpdateSubjectParams) middleware.Responder {
@@ -75,7 +75,7 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema string) func(subjects.UpdateSu
 		}
 
 		// Update the subject.
-		subjectOut, err := permsdb.UpdateSubject(ctx, tx, id, *subjectIn.SubjectID, *subjectIn.SubjectType)
+		subjectOut, err := permsdb.UpdateSubject(ctx, tx, id, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
 		if err != nil {
 			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
