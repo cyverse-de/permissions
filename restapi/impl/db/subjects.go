@@ -21,6 +21,11 @@ func rowsToSubjectList(rows *sql.Rows) ([]*models.SubjectOut, error) {
 		subjects = append(subjects, subjectDto.ToSubjectOut())
 	}
 
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return subjects, nil
 }
 

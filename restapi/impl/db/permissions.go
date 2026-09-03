@@ -30,6 +30,11 @@ func rowsToPermissionList(rows *sql.Rows) ([]*models.Permission, error) {
 		permissions = append(permissions, dto.ToPermission())
 	}
 
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return permissions, nil
 }
 
@@ -48,6 +53,11 @@ func rowsToAbbreviatedPermissionList(rows *sql.Rows) ([]*models.AbbreviatedPermi
 			return nil, err
 		}
 		permissions = append(permissions, &permission)
+	}
+
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return permissions, nil
@@ -490,6 +500,11 @@ func GetPermissionLevelIDByName(ctx context.Context, tx *sql.Tx, level models.Pe
 			return nil, err
 		}
 		ids = append(ids, &id)
+	}
+
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	// Check for duplicate results. This shouldn't happen because there's a uniqueness constraint.

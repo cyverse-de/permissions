@@ -21,6 +21,11 @@ func rowsToResourceList(rows *sql.Rows) ([]*models.ResourceOut, error) {
 		resources = append(resources, &resource)
 	}
 
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return resources, nil
 }
 

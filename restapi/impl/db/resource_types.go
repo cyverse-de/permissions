@@ -68,6 +68,11 @@ func GetResourceTypeByName(ctx context.Context, tx *sql.Tx, name *string) (*mode
 		resourceTypes = append(resourceTypes, &resourceType)
 	}
 
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	// Check for duplicates. There's a uniqueness constraint on the database so this shouldn't happen.
 	if len(resourceTypes) > 1 {
 		return nil, fmt.Errorf("found multiple resource types with the name: %s", *name)
@@ -103,6 +108,11 @@ func GetDuplicateResourceTypeByName(ctx context.Context, tx *sql.Tx, id *string,
 			return nil, err
 		}
 		resourceTypes = append(resourceTypes, &resourceType)
+	}
+
+	// Check for any uncaught errors.
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	// Check for duplicates. There's a uniqueness constraint on the database so this shouldn't happen.
