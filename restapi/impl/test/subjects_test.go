@@ -135,9 +135,7 @@ func deleteSubjectByExternalID(db *sql.DB, schema, subjectID, subjectType string
 }
 
 func TestAddSubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -157,9 +155,7 @@ func TestAddSubject(t *testing.T) {
 }
 
 func TestAddDuplicateSubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -181,9 +177,7 @@ func TestAddDuplicateSubject(t *testing.T) {
 }
 
 func TestListSubjects(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -213,9 +207,7 @@ func TestListSubjects(t *testing.T) {
 }
 
 func TestListSubjectsByExternalId(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -247,9 +239,7 @@ func TestListSubjectsByExternalId(t *testing.T) {
 }
 
 func TestListSubjectsByType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -273,9 +263,7 @@ func TestListSubjectsByType(t *testing.T) {
 }
 
 func TestListSubjectsByExternalIdAndType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -299,9 +287,7 @@ func TestListSubjectsByExternalIdAndType(t *testing.T) {
 }
 
 func TestListSubjectsEmpty(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -317,9 +303,7 @@ func TestListSubjectsEmpty(t *testing.T) {
 }
 
 func TestUpdateSubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -365,9 +349,7 @@ func TestUpdateSubject(t *testing.T) {
 }
 
 func TestUpdateSubjectNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -386,9 +368,7 @@ func TestUpdateSubjectNotFound(t *testing.T) {
 }
 
 func TestUpdateSubjectDuplicate(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -415,9 +395,7 @@ func TestUpdateSubjectDuplicate(t *testing.T) {
 }
 
 func TestDeleteSubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -438,9 +416,7 @@ func TestDeleteSubject(t *testing.T) {
 }
 
 func TestDeleteSubjectNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -457,9 +433,7 @@ func TestDeleteSubjectNotFound(t *testing.T) {
 }
 
 func TestDeleteSubjectByName(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -482,9 +456,7 @@ func TestDeleteSubjectByName(t *testing.T) {
 }
 
 func TestDeleteSubjectByNameNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)

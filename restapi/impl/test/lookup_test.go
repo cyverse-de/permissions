@@ -85,9 +85,7 @@ func bySubjectAndResource(
 }
 
 func TestBySubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -111,9 +109,7 @@ func TestBySubject(t *testing.T) {
 }
 
 func TestBySubjectMultiplePermissions(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -138,9 +134,7 @@ func TestBySubjectMultiplePermissions(t *testing.T) {
 }
 
 func TestBySubjectIncorrectSubjectType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -162,9 +156,7 @@ func TestBySubjectIncorrectSubjectType(t *testing.T) {
 }
 
 func TestBySubjectGroupsNotTransitive(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -189,9 +181,7 @@ func TestBySubjectGroupsNotTransitive(t *testing.T) {
 }
 
 func TestBySubjectNonLookup(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -226,9 +216,7 @@ func TestBySubjectNonLookup(t *testing.T) {
 }
 
 func TestBySubjectMinLevel(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -258,9 +246,7 @@ func TestBySubjectMinLevel(t *testing.T) {
 }
 
 func TestBySubjectAndResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -301,9 +287,7 @@ func TestBySubjectAndResourceType(t *testing.T) {
 }
 
 func TestBySubjectAndResourceTypeIncorrectSubjectType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -326,9 +310,7 @@ func TestBySubjectAndResourceTypeIncorrectSubjectType(t *testing.T) {
 }
 
 func TestBySubjectAndResourceTypeUnknownResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -349,9 +331,7 @@ func TestBySubjectAndResourceTypeUnknownResourceType(t *testing.T) {
 }
 
 func TestBySubjectAndResourceTypeGroupsNotTransitive(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -376,9 +356,7 @@ func TestBySubjectAndResourceTypeGroupsNotTransitive(t *testing.T) {
 }
 
 func TestBySubjectAndResourceTypeNonLookup(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -438,9 +416,7 @@ func TestBySubjectAndResourceTypeNonLookup(t *testing.T) {
 }
 
 func TestBySubjectAndResourceTypeMinLevel(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -481,9 +457,7 @@ func TestBySubjectAndResourceTypeMinLevel(t *testing.T) {
 }
 
 func TestBySubjectAndResource(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -523,9 +497,7 @@ func TestBySubjectAndResource(t *testing.T) {
 }
 
 func TestBySubjectAndResourceNonLookup(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -564,9 +536,7 @@ func TestBySubjectAndResourceNonLookup(t *testing.T) {
 }
 
 func TestBySubjectAndResourceMinLevel(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)

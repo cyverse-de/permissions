@@ -103,9 +103,7 @@ func deleteResourceTypeByName(db *sql.DB, schema, name string) {
 }
 
 func TestAddResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -125,9 +123,7 @@ func TestAddResourceType(t *testing.T) {
 }
 
 func TestAddDuplicateResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -148,9 +144,7 @@ func TestAddDuplicateResourceType(t *testing.T) {
 }
 
 func TestGetResourceTypes(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -181,9 +175,7 @@ func TestGetResourceTypes(t *testing.T) {
 }
 
 func TestFindResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -215,9 +207,7 @@ func TestFindResourceType(t *testing.T) {
 }
 
 func TestGetResourceTypesEmpty(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -236,9 +226,7 @@ func TestGetResourceTypesEmpty(t *testing.T) {
 }
 
 func TestFindResourceTypeNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -262,9 +250,7 @@ func TestFindResourceTypeNotFound(t *testing.T) {
 }
 
 func TestModifyResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -313,9 +299,7 @@ func TestModifyResourceType(t *testing.T) {
 }
 
 func TestModifyNonExistentResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -332,9 +316,7 @@ func TestModifyNonExistentResourceType(t *testing.T) {
 }
 
 func TestModifyDuplicateResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -355,9 +337,7 @@ func TestModifyDuplicateResourceType(t *testing.T) {
 }
 
 func TestDeleteResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -393,9 +373,7 @@ func TestDeleteResourceType(t *testing.T) {
 }
 
 func TestDeleteResourceTypeByName(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -431,9 +409,7 @@ func TestDeleteResourceTypeByName(t *testing.T) {
 }
 
 func TestDeleteNonExistentResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -450,9 +426,7 @@ func TestDeleteNonExistentResourceType(t *testing.T) {
 }
 
 func TestDeleteNonExistentResourceTypeByName(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -469,9 +443,7 @@ func TestDeleteNonExistentResourceTypeByName(t *testing.T) {
 }
 
 func TestDeleteResourceTypeWithResources(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -492,9 +464,7 @@ func TestDeleteResourceTypeWithResources(t *testing.T) {
 }
 
 func TestDeleteResourceTypeWithResourcesByName(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)

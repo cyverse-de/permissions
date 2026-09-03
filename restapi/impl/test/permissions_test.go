@@ -243,9 +243,7 @@ func addDefaultPermissions(db *sql.DB, schema string) {
 }
 
 func TestGrantPermission(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -290,9 +288,7 @@ func TestGrantPermission(t *testing.T) {
 }
 
 func TestListPermissions(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -344,9 +340,7 @@ func TestListPermissions(t *testing.T) {
 }
 
 func TestAutoInsertSubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -397,9 +391,7 @@ func TestAutoInsertSubject(t *testing.T) {
 }
 
 func TestAutoInsertResource(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -450,9 +442,7 @@ func TestAutoInsertResource(t *testing.T) {
 }
 
 func TestUpdatePermissionLevel(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -507,9 +497,7 @@ func TestUpdatePermissionLevel(t *testing.T) {
 }
 
 func TestRevokePermission(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the datasbase.
 	db, schema := initdb(t)
@@ -529,9 +517,7 @@ func TestRevokePermission(t *testing.T) {
 }
 
 func TestRevokePermissionResourceTypeNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -549,9 +535,7 @@ func TestRevokePermissionResourceTypeNotFound(t *testing.T) {
 }
 
 func TestRevokePermissionResourceNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -569,9 +553,7 @@ func TestRevokePermissionResourceNotFound(t *testing.T) {
 }
 
 func TestRevokePermissionUserNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -593,9 +575,7 @@ func TestRevokePermissionUserNotFound(t *testing.T) {
 }
 
 func TestRevokePermissionNotFound(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -621,9 +601,7 @@ func TestRevokePermissionNotFound(t *testing.T) {
 }
 
 func TestPutPermission(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -668,9 +646,7 @@ func TestPutPermission(t *testing.T) {
 }
 
 func TestPutPermissionNewSubject(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -714,9 +690,7 @@ func TestPutPermissionNewSubject(t *testing.T) {
 }
 
 func TestPutPermissionNewResource(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -760,9 +734,7 @@ func TestPutPermissionNewResource(t *testing.T) {
 }
 
 func TestPutPermissionDuplicateSubjectId(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -784,9 +756,7 @@ func TestPutPermissionDuplicateSubjectId(t *testing.T) {
 }
 
 func TestPutPermissionBogusResourceType(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -804,9 +774,7 @@ func TestPutPermissionBogusResourceType(t *testing.T) {
 }
 
 func TestListResourcePermissionsEmpty(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -820,9 +788,7 @@ func TestListResourcePermissionsEmpty(t *testing.T) {
 }
 
 func TestListResourcePermissions(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -845,9 +811,7 @@ func TestListResourcePermissions(t *testing.T) {
 }
 
 func TestListResourcePermissionsExpandGroups(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -880,9 +844,7 @@ func TestListResourcePermissionsExpandGroups(t *testing.T) {
 }
 
 func TestListResourcePermissionsExpandGroupsTooManySubjects(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -909,9 +871,7 @@ func TestListResourcePermissionsExpandGroupsTooManySubjects(t *testing.T) {
 }
 
 func TestCopyPermissions(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -937,9 +897,7 @@ func TestCopyPermissions(t *testing.T) {
 }
 
 func TestCopyPermissionsOverwrite(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)
@@ -968,9 +926,7 @@ func TestCopyPermissionsOverwrite(t *testing.T) {
 }
 
 func TestCopyPermissionsRetain(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 
 	// Initialize the database.
 	db, schema := initdb(t)

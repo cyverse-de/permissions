@@ -45,9 +45,7 @@ func subjectUserID(t *testing.T, db *sql.DB, schema, subjectID string) *string {
 // path; without this, subjects created by a permission grant stay uncorrelated
 // and the column is unreliable exactly where it looks reliable.
 func TestAddSubjectCorrelatesDEUser(t *testing.T) {
-	if !shouldRun() {
-		return
-	}
+	skipUnlessIntegration(t)
 	db, schema := initdb(t)
 
 	wantID := deUserID(t, db, "test-known"+testUserSuffix)

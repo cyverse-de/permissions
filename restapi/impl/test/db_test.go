@@ -13,16 +13,24 @@ const testMaxExpandedSubjects = 10000
 
 const FakeID = "1A960034-969A-46A7-B6B5-3F1866258CAB"
 
-func shouldRun() bool {
-	return os.Getenv("RUN_INTEGRATION_TESTS") != ""
+// skipUnlessIntegration skips the calling test unless it was asked for
+// explicitly. These tests need a database, so without the skip a plain
+// `go test ./...` reports them as passing without having asserted anything.
+func skipUnlessIntegration(t *testing.T) {
+	t.Helper()
+	if os.Getenv("RUN_INTEGRATION_TESTS") == "" {
+		t.Skip("set RUN_INTEGRATION_TESTS to run")
+	}
 }
 
+// dburi names the DE database rather than a standalone one: the fixtures reach
+// outside the permissions schema for public.users and the group tables.
 func dburi() string {
 	uri := os.Getenv("DBURI")
 	if uri != "" {
 		return uri
 	}
-	return "postgres://de:notprod@dedb:5432/permissions?sslmode=disable"
+	return "postgres://de:notprod@dedb:5432/de?sslmode=disable"
 }
 
 func schema() string {
