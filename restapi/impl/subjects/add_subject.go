@@ -2,6 +2,7 @@ package subjects
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/cyverse-de/permissions/logger"
@@ -29,6 +30,7 @@ func BuildAddSubjectHandler(db *sql.DB, schema, userSuffix string) func(subjects
 				&models.ErrorOut{Reason: &reason},
 			)
 		}
+		defer permsdb.RollbackTx(tx)
 
 		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
@@ -39,28 +41,15 @@ func BuildAddSubjectHandler(db *sql.DB, schema, userSuffix string) func(subjects
 			)
 		}
 
-		// Make sure that a subject with the same ID doesn't exist already.
-		exists, err := permsdb.SubjectIDExists(ctx, tx, *subjectIn.SubjectID)
-		if err != nil {
-			tx.Rollback() // nolint:errcheck
-			logger.Log.Error(err)
-			reason := err.Error()
-			return subjects.NewAddSubjectInternalServerError().WithPayload(
-				&models.ErrorOut{Reason: &reason},
-			)
-		}
-		if exists {
-			tx.Rollback() // nolint:errcheck
+		// Add the subject.
+		subjectOut, err := permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
+		if errors.Is(err, permsdb.ErrSubjectExists) {
 			reason := fmt.Sprintf("subject, %s, already exists", string(*subjectIn.SubjectID))
 			return subjects.NewAddSubjectBadRequest().WithPayload(
 				&models.ErrorOut{Reason: &reason},
 			)
 		}
-
-		// Add the subject.
-		subjectOut, err := permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
 		if err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()
 			return subjects.NewAddSubjectInternalServerError().WithPayload(
@@ -70,7 +59,6 @@ func BuildAddSubjectHandler(db *sql.DB, schema, userSuffix string) func(subjects
 
 		// Commit the transaction.
 		if err := tx.Commit(); err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()
 			return subjects.NewAddSubjectInternalServerError().WithPayload(

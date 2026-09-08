@@ -3,6 +3,7 @@ package permissions
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/cyverse-de/permissions/logger"
@@ -36,22 +37,25 @@ func getOrAddSubject(
 		return subject, nil
 	}
 
-	// Make sure that another subject with the same ID doesn't exist already.
-	exists, err := permsdb.SubjectIDExists(ctx, tx, *subjectIn.SubjectID)
-	if err != nil {
-		logger.Log.Error(err)
-		return nil, erf.InternalServerError((err.Error()))
-	}
-	if exists {
-		reason := fmt.Sprintf("another subject with ID, %s, already exists", string(*subjectIn.SubjectID))
-		return nil, erf.BadRequest(reason)
-	}
-
 	// Attempt to add the subject.
 	subject, err = permsdb.AddSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
+	if err == nil {
+		return subject, nil
+	}
+	if !errors.Is(err, permsdb.ErrSubjectExists) {
+		logger.Log.Error(err)
+		return nil, erf.InternalServerError(err.Error())
+	}
+
+	// Another writer holds the ID; its subject serves only if it has the requested type.
+	subject, err = permsdb.GetSubject(ctx, tx, *subjectIn.SubjectID, *subjectIn.SubjectType)
 	if err != nil {
 		logger.Log.Error(err)
 		return nil, erf.InternalServerError(err.Error())
+	}
+	if subject == nil {
+		reason := fmt.Sprintf("another subject with ID, %s, already exists", string(*subjectIn.SubjectID))
+		return nil, erf.BadRequest(reason)
 	}
 	return subject, nil
 }

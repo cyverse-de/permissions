@@ -18,6 +18,7 @@ func (s *SubjectDTO) ToSubjectOut() *models.SubjectOut {
 	subjectOut.ID = s.ID
 	subjectOut.SubjectID = s.SubjectID
 	subjectOut.SubjectType = s.SubjectType
+	subjectOut.SubjectSourceID = subjectSourceID(s.SubjectType)
 
 	return &subjectOut
 }

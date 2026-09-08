@@ -30,6 +30,7 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema, userSuffix string) func(subje
 				&models.ErrorOut{Reason: &reason},
 			)
 		}
+		defer permsdb.RollbackTx(tx)
 
 		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
@@ -43,7 +44,6 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema, userSuffix string) func(subje
 		// Verify that the subject exists.
 		exists, err := permsdb.SubjectExists(ctx, tx, id)
 		if err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()
 			return subjects.NewUpdateSubjectInternalServerError().WithPayload(
@@ -60,7 +60,6 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema, userSuffix string) func(subje
 		// Verify that a subject with the same external subject ID doesn't exist.
 		duplicateExists, err := permsdb.DuplicateSubjectExists(ctx, tx, id, *subjectIn.SubjectID)
 		if err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()
 			return subjects.NewUpdateSubjectInternalServerError().WithPayload(
@@ -74,10 +73,27 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema, userSuffix string) func(subje
 			)
 		}
 
+		// Refuse a type change that the group tables' foreign keys would reject.
+		conflicts, err := permsdb.SubjectTypeChangeConflicts(ctx, tx, id, *subjectIn.SubjectType)
+		if err != nil {
+			logger.Log.Error(err)
+			reason := err.Error()
+			return subjects.NewUpdateSubjectInternalServerError().WithPayload(
+				&models.ErrorOut{Reason: &reason},
+			)
+		}
+		if conflicts {
+			reason := fmt.Sprintf(
+				"subject, %s, is a group or a group member, so its type cannot be changed", string(id),
+			)
+			return subjects.NewUpdateSubjectBadRequest().WithPayload(
+				&models.ErrorOut{Reason: &reason},
+			)
+		}
+
 		// Update the subject.
 		subjectOut, err := permsdb.UpdateSubject(ctx, tx, id, *subjectIn.SubjectID, *subjectIn.SubjectType, userSuffix)
 		if err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()
 			return subjects.NewUpdateSubjectInternalServerError().WithPayload(
@@ -87,7 +103,6 @@ func BuildUpdateSubjectHandler(db *sql.DB, schema, userSuffix string) func(subje
 
 		// Commit the transaction.
 		if err := tx.Commit(); err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			reason := err.Error()
 			return subjects.NewUpdateSubjectInternalServerError().WithPayload(

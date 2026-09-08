@@ -19,9 +19,9 @@ permissions:
   max_expanded_subjects: {{ keyOrDefault (printf "%s/permissions/max-expanded-subjects" $base) "10000" }}
 
 {{- if tree (printf "%s/grouper-db" $base) }}
-# Retained for rollback only: current builds ignore this section, but the
-# previous (Grouper-reading) image fails to start without it. Remove once the
-# rollback window has closed.
+# The service ignores this section, but the conversion commands under
+# conversions/ still look up the de-users group in Grouper, and the previous
+# (Grouper-reading) service image fails to start without it.
 grouperdb:
   {{ with $v := (key (printf "%s/grouper-db/uri" $base)) }}uri: {{ $v }}{{ end }}
   folder_name_prefix: "iplant:de:{{ env "DE_ENV" }}"

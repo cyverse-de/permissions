@@ -573,3 +573,63 @@ func TestBySubjectAndResourceMinLevel(t *testing.T) {
 		t.Fatalf("unexpected number of results: %d", len(perms))
 	}
 }
+
+func bySubjectAndResourceTypeAbbreviated(
+	db *sql.DB, schema, subjectType, subjectID, resourceType string, lookup bool, minLevel *string,
+) *models.AbbreviatedPermissionList {
+
+	// Build the request handler.
+	handler := impl.BuildBySubjectAndResourceTypeAbbreviatedHandler(db, schema)
+
+	// Look up the permissions.
+	params := permissions.BySubjectAndResourceTypeAbbreviatedParams{
+		HTTPRequest:  fakeRequest(),
+		SubjectType:  subjectType,
+		SubjectID:    subjectID,
+		ResourceType: resourceType,
+		Lookup:       &lookup,
+		MinLevel:     minLevel,
+	}
+	return handler(params).(*permissions.BySubjectAndResourceTypeAbbreviatedOK).Payload
+}
+
+func TestBySubjectAndResourceTypeAbbreviated(t *testing.T) {
+	skipUnlessIntegration(t)
+
+	// Initialize the database. s2 reads app2 directly and writes it through g1id.
+	db, schema := initdb(t)
+	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
+	addDefaultPermissions(db, schema)
+
+	write := "write"
+	tests := []struct {
+		name     string
+		lookup   bool
+		minLevel *string
+		want     map[string]string
+	}{
+		{name: "lookup", lookup: true, want: map[string]string{"app1": "own", "app2": "write"}},
+		{name: "no lookup", lookup: false, want: map[string]string{"app1": "own", "app2": "read"}},
+		{name: "lookup at least write", lookup: true, minLevel: &write, want: map[string]string{"app1": "own", "app2": "write"}},
+		{name: "no lookup at least write", lookup: false, minLevel: &write, want: map[string]string{"app1": "own"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			perms := bySubjectAndResourceTypeAbbreviated(db, schema, "user", "s2", "app", tt.lookup, tt.minLevel).Permissions
+
+			got := make(map[string]string, len(perms))
+			for _, p := range perms {
+				got[*p.ResourceName] = string(*p.PermissionLevel)
+			}
+			if len(got) != len(tt.want) {
+				t.Fatalf("unexpected results: %v, want %v", got, tt.want)
+			}
+			for resource, level := range tt.want {
+				if got[resource] != level {
+					t.Errorf("unexpected level for %s: %q, want %q", resource, got[resource], level)
+				}
+			}
+		})
+	}
+}

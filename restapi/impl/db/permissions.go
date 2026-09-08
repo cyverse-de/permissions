@@ -63,32 +63,23 @@ func rowsToAbbreviatedPermissionList(rows *sql.Rows) ([]*models.AbbreviatedPermi
 	return permissions, nil
 }
 
-// subjectScope builds the clauses that restrict a permission query to one
-// subject, optionally expanded to the groups that subject belongs to.
-//
-// The expansion reads group_effective_members, the materialized transitive
-// closure, so it stays a plain join no matter how deeply groups nest.
-//
-// Two shapes rather than one query with a conditional arm: this is the query
-// behind every authorization decision in the DE, and swapping a literal array of
-// known cardinality for a CTE can flip a nested-loop index scan into a hash join
-// over the whole permissions table. Keeping the non-expanding form free of the
-// CTE lets the planner see it unchanged.
-//
-// $1 is the external subject identifier in both shapes, so the remaining
-// parameter numbers are unaffected.
-func subjectScope(lookup bool) (prefix, where string) {
+// subjectScope returns the clauses that restrict a permission query to the
+// subject bound to placeholder: a WITH prefix and a WHERE fragment. With lookup
+// the prefix resolves the subject's groups from group_effective_members and the
+// fragment matches any of them; without it the prefix is empty and the fragment
+// matches the subject alone, so the planner sees the non-expanding query
+// unchanged. The placeholder is the query's first parameter in both shapes.
+func subjectScope(lookup bool, placeholder string) (prefix, where string) {
 	if !lookup {
-		return "", "s.subject_id = $1"
+		return "", "s.subject_id = " + placeholder
 	}
 
-	// A group-typed requester is safe here only because
+	// A group-typed requester expands to nothing but itself because
 	// group_effective_members.member_type is CHECK-pinned to 'user' in the
-	// de-database schema, so a group can never appear as a member_id and the
-	// expansion adds nothing to it. Relaxing that constraint would change
-	// authorization results.
+	// de-database schema; relaxing that constraint would change authorization
+	// results.
 	prefix = `WITH requester AS (
-	              SELECT id FROM subjects WHERE subject_id = $1
+	              SELECT id FROM subjects WHERE subject_id = ` + placeholder + `
 	          ),
 	          subject_ids AS (
 	              SELECT id FROM requester
@@ -159,7 +150,7 @@ func ListResourcePermissions(ctx context.Context, tx *sql.Tx, resourceTypeName, 
 // PermissionsForSubject lists permissions granted to a subject, expanded to the
 // subject's groups when lookup is true.
 func PermissionsForSubject(ctx context.Context, tx *sql.Tx, subjectID string, lookup bool) ([]*models.Permission, error) {
-	prefix, subjectWhere := subjectScope(lookup)
+	prefix, subjectWhere := subjectScope(lookup, "$1")
 
 	// Query the database.
 	query := prefix + `SELECT DISTINCT ON (r.id)
@@ -191,7 +182,7 @@ func PermissionsForSubject(ctx context.Context, tx *sql.Tx, subjectID string, lo
 // PermissionsForSubjectMinLevel lists permissions of at least the given level granted to a subject, expanded
 // to the subject's groups when lookup is true.
 func PermissionsForSubjectMinLevel(ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, minLevel string) ([]*models.Permission, error) {
-	prefix, subjectWhere := subjectScope(lookup)
+	prefix, subjectWhere := subjectScope(lookup, "$1")
 
 	// Query the database.
 	query := prefix + `SELECT DISTINCT ON (r.id)
@@ -226,7 +217,7 @@ func PermissionsForSubjectMinLevel(ctx context.Context, tx *sql.Tx, subjectID st
 func PermissionsForSubjectAndResourceType(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName string,
 ) ([]*models.Permission, error) {
-	prefix, subjectWhere := subjectScope(lookup)
+	prefix, subjectWhere := subjectScope(lookup, "$1")
 
 	// Query the database.
 	query := prefix + `SELECT DISTINCT ON (r.id)
@@ -261,7 +252,7 @@ func PermissionsForSubjectAndResourceType(
 func PermissionsForSubjectAndResourceTypeMinLevel(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName, minLevel string,
 ) ([]*models.Permission, error) {
-	prefix, subjectWhere := subjectScope(lookup)
+	prefix, subjectWhere := subjectScope(lookup, "$1")
 
 	// Query the database.
 	query := prefix + `SELECT DISTINCT ON (r.id)
@@ -324,18 +315,12 @@ func AbbreviatedPermissionsForSubjectAndResourceType(
 		Where(sq.Eq{"rt.name": resourceTypeName})
 
 	// Restrict to the subject, expanded to its groups when asked. Squirrel
-	// numbers placeholders itself, so the scope is applied as an expression
-	// rather than by splicing the shared SQL used by the other queries.
+	// numbers prefix arguments before all others, so the subject stays $1.
+	prefix, subjectWhere := subjectScope(lookup, "?")
 	if lookup {
-		builder = builder.Where(sq.Expr(
-			`p.subject_id IN (
-			     WITH requester AS (SELECT id FROM subjects WHERE subject_id = ?)
-			     SELECT id FROM requester
-			     UNION
-			     SELECT em.group_id FROM group_effective_members em JOIN requester r ON em.member_id = r.id
-			 )`, subjectID))
+		builder = builder.Prefix(prefix, subjectID).Where(subjectWhere)
 	} else {
-		builder = builder.Where(sq.Eq{"s.subject_id": subjectID})
+		builder = builder.Where(subjectWhere, subjectID)
 	}
 
 	// Add the permission level expression if a minimum level was specified.
@@ -368,7 +353,7 @@ func AbbreviatedPermissionsForSubjectAndResourceType(
 func PermissionsForSubjectAndResource(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName, resourceName string,
 ) ([]*models.Permission, error) {
-	prefix, subjectWhere := subjectScope(lookup)
+	prefix, subjectWhere := subjectScope(lookup, "$1")
 
 	// Query the database.
 	query := prefix + `SELECT DISTINCT ON (r.id)
@@ -404,7 +389,7 @@ func PermissionsForSubjectAndResource(
 func PermissionsForSubjectAndResourceMinLevel(
 	ctx context.Context, tx *sql.Tx, subjectID string, lookup bool, resourceTypeName, resourceName, minLevel string,
 ) ([]*models.Permission, error) {
-	prefix, subjectWhere := subjectScope(lookup)
+	prefix, subjectWhere := subjectScope(lookup, "$1")
 
 	// Query the database.
 	query := prefix + `SELECT DISTINCT ON (r.id)
@@ -643,53 +628,17 @@ func CopyPermissions(ctx context.Context, tx *sql.Tx, source, dest *models.Subje
 // produce more subjects than the caller allowed.
 var ErrTooManySubjects = errors.New("too many subjects after group expansion")
 
-// ExpandedResourcePermissions lists a resource's permissions with each group
-// permission replaced by the group's effective members, keeping the strongest
-// level per subject.
-//
-// maxSubjects bounds the work as well as the result. `de-users` contains
-// essentially every DE user, so expanding a public resource's permissions is
-// unbounded work; it is slow enough over HTTP today that nobody does it, and
-// making it fast is exactly what would invite someone to. A membership count
-// runs first so that an over-cap request is refused for the price of an index
-// scan instead of the full expansion and sort it is refusing to do; the LIMIT
-// on the expansion itself remains as a backstop. Exceeding the bound is an
-// error rather than a truncation, because a silently short list of who can see
-// a resource is worse than a refusal.
-func ExpandedResourcePermissions(
-	ctx context.Context, tx *sql.Tx, resourceTypeName, resourceName string, maxSubjects int,
-) ([]*models.Permission, error) {
+func tooManySubjects(resourceTypeName, resourceName string, maxSubjects int) error {
+	return fmt.Errorf("%w: %s/%s expands to more than %d subjects",
+		ErrTooManySubjects, resourceTypeName, resourceName, maxSubjects)
+}
 
-	// The count reads only (group_id, member_id) from group_effective_members so
-	// it can be answered from the primary key alone. It may overcount -- a user
-	// holding both a direct grant and a group membership is counted twice -- but
-	// never undercounts, so it can only refuse expansions already near the cap,
-	// and refusing early is the point.
-	countQuery := `WITH matching AS (
-	              SELECT p.subject_id
-	                FROM permissions p
-	                JOIN resources r ON r.id = p.resource_id
-	                JOIN resource_types rt ON rt.id = r.resource_type_id
-	               WHERE rt.name = $1 AND r.name = $2
-	          )
-	          SELECT (SELECT count(*)
-	                    FROM matching m
-	                    JOIN subjects s ON s.id = m.subject_id
-	                   WHERE s.subject_type = 'user')
-	               + (SELECT count(DISTINCT em.member_id)
-	                    FROM matching m
-	                    JOIN subjects gs ON gs.id = m.subject_id AND gs.subject_type = 'group'
-	                    JOIN group_effective_members em ON em.group_id = gs.id)`
-	var subjectCount int
-	if err := tx.QueryRowContext(ctx, countQuery, resourceTypeName, resourceName).Scan(&subjectCount); err != nil {
-		return nil, err
-	}
-	if subjectCount > maxSubjects {
-		return nil, fmt.Errorf("%w: %s/%s expands to more than %d subjects",
-			ErrTooManySubjects, resourceTypeName, resourceName, maxSubjects)
-	}
-
-	query := `WITH matching AS (
+// expandedResourceSubjects resolves the grants on one resource ($1 type name, $2
+// name) to the subjects they reach. A grant to a group the groups service
+// manages is replaced by that group's effective members; any other grant -- to
+// a user, or to a group-typed subject with no groups row such as the GrouperAll
+// public marker -- stands as itself and is flagged direct.
+const expandedResourceSubjects = `WITH matching AS (
 	              SELECT p.id, p.subject_id, p.permission_level_id,
 	                     r.id AS resource_id, r.name AS resource_name, rt.name AS resource_type
 	                FROM permissions p
@@ -698,29 +647,51 @@ func ExpandedResourcePermissions(
 	               WHERE rt.name = $1 AND r.name = $2
 	          ),
 	          expanded AS (
-	              SELECT m.id, s.id AS internal_subject_id, s.subject_id, s.subject_type,
-	                     m.permission_level_id, m.resource_id, m.resource_name, m.resource_type
+	              SELECT m.id, m.subject_id AS internal_subject_id, m.permission_level_id,
+	                     m.resource_id, m.resource_name, m.resource_type, true AS direct
 	                FROM matching m
-	                JOIN subjects s ON s.id = m.subject_id
-	               WHERE s.subject_type = 'user'
+	               WHERE NOT EXISTS (SELECT 1 FROM groups g WHERE g.subject_id = m.subject_id)
 	              UNION ALL
-	              SELECT m.id, ms.id, ms.subject_id, ms.subject_type,
-	                     m.permission_level_id, m.resource_id, m.resource_name, m.resource_type
+	              SELECT m.id, em.member_id, m.permission_level_id,
+	                     m.resource_id, m.resource_name, m.resource_type, false
 	                FROM matching m
-	                JOIN subjects gs ON gs.id = m.subject_id AND gs.subject_type = 'group'
-	                JOIN group_effective_members em ON em.group_id = gs.id
-	                JOIN subjects ms ON ms.id = em.member_id
+	                JOIN group_effective_members em ON em.group_id = m.subject_id
 	          )
-	          SELECT DISTINCT ON (e.internal_subject_id)
-	                 e.id, e.internal_subject_id, e.subject_id, e.subject_type,
+	          `
+
+// ExpandedResourcePermissions lists a resource's permissions with each managed
+// group's grant replaced by one per effective member, keeping the strongest
+// level per subject. A result of more than maxSubjects is refused with
+// ErrTooManySubjects rather than truncated: de-users holds essentially every DE
+// user, so expanding a public resource is unbounded work.
+func ExpandedResourcePermissions(
+	ctx context.Context, tx *sql.Tx, resourceTypeName, resourceName string, maxSubjects int,
+) ([]*models.Permission, error) {
+
+	// Counting first refuses an over-cap request without the expansion's
+	// subject join and sort.
+	countQuery := expandedResourceSubjects + `SELECT count(DISTINCT internal_subject_id) FROM expanded`
+	var subjectCount int
+	if err := tx.QueryRowContext(ctx, countQuery, resourceTypeName, resourceName).Scan(&subjectCount); err != nil {
+		return nil, err
+	}
+	if subjectCount > maxSubjects {
+		return nil, tooManySubjects(resourceTypeName, resourceName, maxSubjects)
+	}
+
+	// A direct grant outranks a group grant at the same level so that the
+	// permission reported for a subject does not depend on the plan.
+	query := expandedResourceSubjects + `SELECT DISTINCT ON (e.internal_subject_id)
+	                 e.id, e.internal_subject_id, s.subject_id, s.subject_type,
 	                 e.resource_id, e.resource_name, e.resource_type, pl.name
 	            FROM expanded e
+	            JOIN subjects s ON s.id = e.internal_subject_id
 	            JOIN permission_levels pl ON pl.id = e.permission_level_id
-	           ORDER BY e.internal_subject_id, pl.precedence
+	           ORDER BY e.internal_subject_id, pl.precedence, e.direct DESC, e.id
 	           LIMIT $3`
 
-	// One more than the bound, so that exceeding it stays detectable even if
-	// the pre-check ever disagrees with the expansion.
+	// One more than the bound, so that exceeding it stays detectable if the
+	// count and the expansion ever disagree.
 	rows, err := tx.QueryContext(ctx, query, resourceTypeName, resourceName, maxSubjects+1)
 	if err != nil {
 		return nil, err
@@ -732,8 +703,7 @@ func ExpandedResourcePermissions(
 		return nil, err
 	}
 	if len(perms) > maxSubjects {
-		return nil, fmt.Errorf("%w: %s/%s expands to more than %d subjects",
-			ErrTooManySubjects, resourceTypeName, resourceName, maxSubjects)
+		return nil, tooManySubjects(resourceTypeName, resourceName, maxSubjects)
 	}
 	return perms, nil
 }

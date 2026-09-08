@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/cyverse-de/permissions/logger"
@@ -49,18 +50,14 @@ func rowsToSubject(rows *sql.Rows, duplicateErr error) (*models.SubjectOut, erro
 	return subjects[0], nil
 }
 
-// AddSubject adds a subject to the database.
-//
-// A user subject is correlated with its DE user row when one exists, so that
-// joining subjects to public.users does not mean reconstructing the suffixed
-// username at every call site. The correlation is best-effort: a subject may be
-// created before the user has ever logged in to the DE, and that must not
-// prevent the subject from existing.
-//
-// The lookup is conditional on the subject type because subjects_user_id_is_user
-// rejects a group row carrying a user_id, and guarded by NOT EXISTS because
-// subjects_user_id_unique would turn a second claim on the same DE user into a
-// failed insert rather than a missing correlation.
+// ErrSubjectExists reports that a subject with the requested external ID already
+// exists, whichever writer created it.
+var ErrSubjectExists = errors.New("subject already exists")
+
+// AddSubject adds a subject to the database, returning ErrSubjectExists when the
+// external ID is already taken. A user subject is correlated with its DE user
+// row when one exists and no other subject claims it; a user who has never
+// logged in is created uncorrelated.
 func AddSubject(
 	ctx context.Context,
 	tx *sql.Tx,
@@ -69,17 +66,20 @@ func AddSubject(
 	userSuffix string,
 ) (*models.SubjectOut, error) {
 
-	// Update the database.
 	// The subject type is passed a second time as a boolean rather than reused
 	// in the WHERE clause: $2 is an enum in the column list, and comparing it to
-	// a text literal makes PostgreSQL deduce two types for one parameter.
+	// a text literal makes PostgreSQL deduce two types for one parameter. The
+	// conflict clause lets a concurrent insert of the same subject converge
+	// instead of failing; RETURNING then yields no row.
 	query := `INSERT INTO subjects (subject_id, subject_type, user_id)
             VALUES ($1::text, $2, (
                 SELECT u.id FROM public.users u
                  WHERE $4::boolean
                    AND u.username = $1::text || $3::text
                    AND NOT EXISTS (SELECT 1 FROM subjects o WHERE o.user_id = u.id)))
-            RETURNING id, subject_id, subject_type, user_id`
+            ON CONFLICT (subject_id) DO NOTHING
+            RETURNING id, subject_id, subject_type, user_id,
+                      $4::boolean AND EXISTS (SELECT 1 FROM public.users u WHERE u.username = $1::text || $3::text)`
 	row := tx.QueryRowContext(ctx, query,
 		string(subjectID), string(subjectType), userSuffix,
 		subjectType == models.SubjectTypeUser)
@@ -87,33 +87,22 @@ func AddSubject(
 	// Return the subject information.
 	var subjectDto SubjectDTO
 	var userID sql.NullString
-	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType, &userID); err != nil {
+	var userExists bool
+	err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType, &userID, &userExists)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w: %s", ErrSubjectExists, subjectID)
+	}
+	if err != nil {
 		return nil, err
 	}
-	if subjectType == models.SubjectTypeUser && !userID.Valid {
-		warnIfUserClaimed(ctx, tx, subjectID, userSuffix)
-	}
+	warnIfUserClaimed(subjectID, userSuffix, userID, userExists)
 	return subjectDto.ToSubjectOut(), nil
 }
 
-// warnIfUserClaimed distinguishes the two reasons a user subject can come back
-// uncorrelated. No users row for the suffixed username is the common case --
-// the user simply hasn't logged in to the DE yet -- and stays silent. A users
-// row that exists anyway means the NOT EXISTS guard blocked because another
-// subject already claims it, which is worth a warning: the subject will never
-// join to public.users and someone should look at which subject holds the
-// correlation.
-func warnIfUserClaimed(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID, userSuffix string) {
-	var userRowExists bool
-	err := tx.QueryRowContext(ctx,
-		"SELECT EXISTS (SELECT 1 FROM public.users u WHERE u.username = $1::text || $2::text)",
-		string(subjectID), userSuffix,
-	).Scan(&userRowExists)
-	if err != nil {
-		logger.Log.Warnf("unable to check the DE user correlation for subject %s: %s", subjectID, err)
-		return
-	}
-	if userRowExists {
+// warnIfUserClaimed flags a user subject left uncorrelated even though its DE
+// user row exists, which means another subject already claims that row.
+func warnIfUserClaimed(subjectID models.ExternalSubjectID, userSuffix string, userID sql.NullString, userExists bool) {
+	if userExists && !userID.Valid {
 		logger.Log.Warnf(
 			"subject %s has no correlation to DE user %s%s even though that user exists; "+
 				"this usually means another subject already claims the user's row",
@@ -121,11 +110,8 @@ func warnIfUserClaimed(ctx context.Context, tx *sql.Tx, subjectID models.Externa
 	}
 }
 
-// UpdateSubject updates a subject in the database.
-//
-// The DE user correlation is recomputed from the new subject ID and type rather
-// than carried over: the old value names the user the subject used to be, and
-// subjects_user_id_is_user rejects it outright once the type becomes group.
+// UpdateSubject updates a subject in the database, recomputing its DE user
+// correlation from the new subject ID and type.
 func UpdateSubject(
 	ctx context.Context,
 	tx *sql.Tx,
@@ -135,7 +121,6 @@ func UpdateSubject(
 	userSuffix string,
 ) (*models.SubjectOut, error) {
 
-	// Update the database.
 	// The subject type is passed a second time as a boolean rather than reused
 	// in the WHERE clause: $2 is an enum in the column list, and comparing it to
 	// a text literal makes PostgreSQL deduce two types for one parameter. The
@@ -147,7 +132,8 @@ func UpdateSubject(
                    AND u.username = $1::text || $4::text
                    AND NOT EXISTS (SELECT 1 FROM subjects o WHERE o.user_id = u.id AND o.id != $3))
             WHERE id = $3
-            RETURNING id, subject_id, subject_type, user_id`
+            RETURNING id, subject_id, subject_type, user_id,
+                      $5::boolean AND EXISTS (SELECT 1 FROM public.users u WHERE u.username = $1::text || $4::text)`
 	row := tx.QueryRowContext(ctx, query,
 		string(subjectID), string(subjectType), string(id), userSuffix,
 		subjectType == models.SubjectTypeUser)
@@ -155,28 +141,12 @@ func UpdateSubject(
 	// Return the subject information.
 	var subjectDto SubjectDTO
 	var userID sql.NullString
-	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType, &userID); err != nil {
+	var userExists bool
+	if err := row.Scan(&subjectDto.ID, &subjectDto.SubjectID, &subjectDto.SubjectType, &userID, &userExists); err != nil {
 		return nil, err
 	}
-	if subjectType == models.SubjectTypeUser && !userID.Valid {
-		warnIfUserClaimed(ctx, tx, subjectID, userSuffix)
-	}
+	warnIfUserClaimed(subjectID, userSuffix, userID, userExists)
 	return subjectDto.ToSubjectOut(), nil
-}
-
-// SubjectIDExists determines whether or not the subject with the given external ID exists in the database.
-func SubjectIDExists(ctx context.Context, tx *sql.Tx, subjectID models.ExternalSubjectID) (bool, error) {
-
-	// Query the database.
-	query := "SELECT count(*) FROM subjects WHERE subject_id = $1"
-	row := tx.QueryRowContext(ctx, query, string(subjectID))
-
-	// Get the result.
-	var count uint32
-	if err := row.Scan(&count); err != nil {
-		return false, err
-	}
-	return count > 0, nil
 }
 
 // SubjectExists determines whether or not the subject with the given internal ID exists in the database.
@@ -213,6 +183,33 @@ func DuplicateSubjectExists(
 		return false, err
 	}
 	return count > 0, nil
+}
+
+// SubjectTypeChangeConflicts reports whether giving the subject the given type
+// would break the group tables' composite foreign keys, which pin the type of
+// every group and every group member.
+func SubjectTypeChangeConflicts(
+	ctx context.Context,
+	tx *sql.Tx,
+	id models.InternalSubjectID,
+	subjectType models.SubjectType,
+) (bool, error) {
+
+	// Query the database.
+	query := `SELECT EXISTS (
+	              SELECT 1 FROM subjects s
+	               WHERE s.id = $1 AND s.subject_type <> $2
+	                 AND (EXISTS (SELECT 1 FROM groups g WHERE g.subject_id = s.id)
+	                   OR EXISTS (SELECT 1 FROM group_memberships gm WHERE gm.member_id = s.id)
+	                   OR EXISTS (SELECT 1 FROM group_effective_members em WHERE em.member_id = s.id)))`
+	row := tx.QueryRowContext(ctx, query, string(id), string(subjectType))
+
+	// Get the result.
+	var conflicts bool
+	if err := row.Scan(&conflicts); err != nil {
+		return false, err
+	}
+	return conflicts, nil
 }
 
 // ListSubjects lists subjects in the database, optionally filtering by subject type and external subject ID

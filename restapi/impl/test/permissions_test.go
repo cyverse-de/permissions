@@ -854,19 +854,67 @@ func TestListResourcePermissionsExpandGroupsTooManySubjects(t *testing.T) {
 	// Add some permissions.
 	addDefaultPermissions(db, schema)
 
-	// The pre-check counts app1 as four subjects (two direct user grants plus
-	// two distinct group members), so a cap of two must refuse the expansion.
+	// app1 expands to three subjects: s2 holds a direct grant and a group
+	// membership but counts once, so a cap of two refuses and a cap of three
+	// serves.
 	responder := listResourcePermissionsAttempt(db, schema, "app", "app1", true, 2)
 	errorOut := responder.(*permissions.ListResourcePermissionsBadRequest).Payload
 	if !strings.Contains(*errorOut.Reason, "too many subjects") {
 		t.Errorf("unexpected failure reason: %s", *errorOut.Reason)
 	}
 
-	// A cap that accommodates the pre-check count must still serve the request.
-	responder = listResourcePermissionsAttempt(db, schema, "app", "app1", true, 4)
+	responder = listResourcePermissionsAttempt(db, schema, "app", "app1", true, 3)
 	perms := responder.(*permissions.ListResourcePermissionsOK).Payload.Permissions
 	if len(perms) != 3 {
 		t.Fatalf("unexpected number of results: %d", len(perms))
+	}
+}
+
+// TestListResourcePermissionsExpandGroupsUnmanagedGroup covers a grant to a
+// group-typed subject with no groups row, which is how the GrouperAll public
+// marker is stored: it has no members to expand to and must survive as itself.
+func TestListResourcePermissionsExpandGroupsUnmanagedGroup(t *testing.T) {
+	skipUnlessIntegration(t)
+
+	// Initialize the database.
+	db, schema := initdb(t)
+	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
+	addDefaultPermissions(db, schema)
+	putPermission(db, schema, "group", "GrouperAll", "app", "app1", "read")
+
+	// The marker is listed alongside the expanded members.
+	perms := listResourcePermissions(db, schema, "app", "app1", true).Permissions
+	if len(perms) != 4 {
+		t.Fatalf("unexpected number of results: %d", len(perms))
+	}
+	checkPermForSubject(t, perms, "app1", "GrouperAll", "read")
+	if got := findPerm(perms, "GrouperAll").Subject.SubjectType; *got != models.SubjectTypeGroup {
+		t.Errorf("unexpected subject type for GrouperAll: %s", *got)
+	}
+}
+
+// TestListResourcePermissionsExpandGroupsPrefersDirectGrant covers a subject
+// holding a direct grant and a group grant at the same level: the direct grant
+// is the one reported, rather than whichever the plan happened to visit first.
+func TestListResourcePermissionsExpandGroupsPrefersDirectGrant(t *testing.T) {
+	skipUnlessIntegration(t)
+
+	// Initialize the database. s3 reads app1 directly and through g1id.
+	db, schema := initdb(t)
+	addDefaultResourceTypes(db, schema, t)
+	addDefaultGroupMemberships(t, db, schema)
+	addGroupMembership(t, db, schema, "g1id", "s3")
+	addDefaultPermissions(db, schema)
+	direct := putPermission(db, schema, "user", "s3", "app", "app1", "read")
+
+	perms := listResourcePermissions(db, schema, "app", "app1", true).Permissions
+	got := findPerm(perms, "s3")
+	if got == nil {
+		t.Fatal("no permission found for s3")
+	}
+	if *got.ID != *direct.ID {
+		t.Errorf("permission %s reported for s3, want the direct grant %s", *got.ID, *direct.ID)
 	}
 }
 

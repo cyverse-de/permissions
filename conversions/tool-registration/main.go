@@ -13,8 +13,8 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/cyverse-de/permissions/conversions/grouper"
 	"github.com/cyverse-de/permissions/logger"
-	"github.com/cyverse-de/permissions/restapi"
 
 	"github.com/cyverse-de/configurate"
 	"github.com/cyverse-de/version"
@@ -139,20 +139,6 @@ func runConversion(db, deDb *sql.DB, deUsersSubjectID string) error {
 	return nil
 }
 
-func getDEUsersGroupID(grouperDb *sql.DB, folderNamePrefix string) (string, error) {
-	query := "SELECT id FROM grouper_groups WHERE name = $1"
-	row := grouperDb.QueryRow(query, fmt.Sprintf("%s:users:de-users", folderNamePrefix))
-
-	// Extract the group ID.
-	var groupID *string
-	if err := row.Scan(&groupID); err != nil {
-		logger.Log.Error(err)
-		return "", err
-	}
-
-	return *groupID, nil
-}
-
 func getSubjectID(db *sql.DB, subjectType, externalSubjectID string) (*string, error) {
 	query := "SELECT id FROM subjects WHERE subject_type = $1 AND subject_id = $2"
 	rows, err := db.Query(query, subjectType, externalSubjectID)
@@ -195,7 +181,7 @@ func main() {
 	}
 
 	// Load the configuration file.
-	cfg, err := configurate.InitDefaults(*config, restapi.DefaultConfig)
+	cfg, err := configurate.InitDefaults(*config, grouper.DefaultConfig)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
@@ -212,21 +198,14 @@ func main() {
 	}
 
 	// Establish the Grouper database session.
-	grouperDburi := cfg.GetString("grouperdb.uri")
-	grouperDb, err := sql.Open("postgres", grouperDburi)
+	grouperDb, grouperFolderNamePrefix, err := grouper.Open(cfg)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}
 	defer logger.LogClose(grouperDb, "Grouper database connection")
-	if err := grouperDb.Ping(); err != nil {
-		logger.Log.Fatal(err.Error())
-	}
-
-	// Retrieve the Grouper folder name prefix.
-	grouperFolderNamePrefix := cfg.GetString("grouperdb.folder_name_prefix")
 
 	// Determine the DE Users group ID.
-	deUsersGroupID, err := getDEUsersGroupID(grouperDb, grouperFolderNamePrefix)
+	deUsersGroupID, err := grouper.DEUsersGroupID(grouperDb, grouperFolderNamePrefix)
 	if err != nil {
 		logger.Log.Fatal(err.Error())
 	}

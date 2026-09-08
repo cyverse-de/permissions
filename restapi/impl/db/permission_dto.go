@@ -16,9 +16,8 @@ type PermissionDTO struct {
 	PermissionLevel   *models.PermissionLevel
 }
 
-// Subject source IDs, as Grouper reported them. Callers -- terrain among them --
-// tell users and groups apart by this field, so the values remain a wire
-// contract even though Grouper no longer supplies them.
+// Subject source IDs are a wire contract: callers such as terrain tell users
+// and groups apart by this field.
 const (
 	userSourceID  = models.SubjectSourceID("ldap")
 	groupSourceID = models.SubjectSourceID("g:gsa")

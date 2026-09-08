@@ -20,6 +20,9 @@ func checkSubject(t *testing.T, subjects []*models.SubjectOut, i int32, subjectI
 	if *actual.SubjectType != models.SubjectType(subjectType) {
 		t.Errorf("unexpected subject type: %s", string(*actual.SubjectType))
 	}
+	if actual.SubjectSourceID == nil {
+		t.Errorf("no subject source ID for %s", subjectID)
+	}
 }
 
 func addSubjectAttempt(
@@ -391,6 +394,46 @@ func TestUpdateSubjectDuplicate(t *testing.T) {
 	expected := fmt.Sprintf("another subject with the ID, %s, already exists", string(s1Id))
 	if *errorOut.Reason != expected {
 		t.Errorf("unexpected failure reason: %s", *errorOut.Reason)
+	}
+}
+
+// TestUpdateSubjectTypeChangeBlocked covers changing the type of a subject the
+// group tables refer to, which their composite foreign keys would reject; the
+// request is refused up front rather than surfacing the constraint.
+func TestUpdateSubjectTypeChangeBlocked(t *testing.T) {
+	skipUnlessIntegration(t)
+
+	// Initialize the database with g1id containing s1.
+	db, schema := initdb(t)
+	addGroupMembership(t, db, schema, "g1id", "s1")
+
+	tests := []struct {
+		name      string
+		subjectID string
+		newType   string
+	}{
+		{name: "a group becoming a user", subjectID: "g1id", newType: "user"},
+		{name: "a group member becoming a group", subjectID: "s1", newType: "group"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			subject := listSubjects(db, schema, nil, &tt.subjectID).Subjects[0]
+
+			responder := updateSubjectAttempt(
+				db, schema, *subject.ID, models.ExternalSubjectID(tt.subjectID), models.SubjectType(tt.newType),
+			)
+			errorOut, ok := responder.(*subjects.UpdateSubjectBadRequest)
+			if !ok {
+				t.Fatalf("unexpected response type: %T", responder)
+			}
+
+			expected := fmt.Sprintf(
+				"subject, %s, is a group or a group member, so its type cannot be changed", string(*subject.ID),
+			)
+			if *errorOut.Payload.Reason != expected {
+				t.Errorf("unexpected failure reason: %s", *errorOut.Payload.Reason)
+			}
+		})
 	}
 }
 

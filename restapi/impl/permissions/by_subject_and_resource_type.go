@@ -51,6 +51,7 @@ func BuildBySubjectAndResourceTypeHandler(
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeInternalServerError(err.Error())
 		}
+		defer permsdb.RollbackTx(tx)
 
 		_, err = tx.ExecContext(ctx, fmt.Sprintf("SET search_path TO %s", schema))
 		if err != nil {
@@ -61,12 +62,10 @@ func BuildBySubjectAndResourceTypeHandler(
 		// Verify that the subject type is correct.
 		subject, err := permsdb.GetSubjectByExternalID(ctx, tx, models.ExternalSubjectID(subjectID))
 		if err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeInternalServerError(err.Error())
 		}
 		if subject != nil && string(*subject.SubjectType) != subjectType {
-			tx.Rollback() // nolint:errcheck
 			reason := fmt.Sprintf("incorrect type for subject, %s: %s", subjectID, subjectType)
 			return bySubjectAndResourceTypeBadRequest(reason)
 		}
@@ -74,12 +73,10 @@ func BuildBySubjectAndResourceTypeHandler(
 		// Verify that the resource type exists.
 		resourceType, err := permsdb.GetResourceTypeByName(ctx, tx, &resourceTypeName)
 		if err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeInternalServerError(err.Error())
 		}
 		if resourceType == nil {
-			tx.Rollback() // nolint:errcheck
 			return bySubjectAndResourceTypeOk(make([]*models.Permission, 0))
 		}
 
@@ -88,14 +85,12 @@ func BuildBySubjectAndResourceTypeHandler(
 		if minLevel == nil {
 			perms, err = permsdb.PermissionsForSubjectAndResourceType(ctx, tx, string(subjectID), lookup, resourceTypeName)
 			if err != nil {
-				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
 				return bySubjectAndResourceTypeInternalServerError(err.Error())
 			}
 		} else {
 			perms, err = permsdb.PermissionsForSubjectAndResourceTypeMinLevel(ctx, tx, string(subjectID), lookup, resourceTypeName, *minLevel)
 			if err != nil {
-				tx.Rollback() // nolint:errcheck
 				logger.Log.Error(err)
 				return bySubjectAndResourceTypeInternalServerError(err.Error())
 			}
@@ -103,7 +98,6 @@ func BuildBySubjectAndResourceTypeHandler(
 
 		// Commit the transaction.
 		if err := tx.Commit(); err != nil {
-			tx.Rollback() // nolint:errcheck
 			logger.Log.Error(err)
 			return bySubjectAndResourceTypeInternalServerError(err.Error())
 		}
