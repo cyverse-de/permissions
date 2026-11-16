@@ -18,7 +18,8 @@ import (
 	errors "github.com/go-openapi/errors"
 	httpkit "github.com/go-openapi/runtime"
 	middleware "github.com/go-openapi/runtime/middleware"
-	swag "github.com/go-openapi/swag"
+	"github.com/go-openapi/runtime/server-middleware/docui"
+	"github.com/go-openapi/swag/cmdutils"
 	"github.com/spf13/viper"
 
 	"github.com/cyverse-de/permissions/clients/grouper"
@@ -62,7 +63,7 @@ var options struct {
 
 // Register the command-line options.
 func configureFlags(api *operations.PermissionsAPI) {
-	api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{
+	api.CommandLineOptionsGroups = []cmdutils.CommandLineOptionsGroup{
 		{
 			ShortDescription: "Service Options",
 			LongDescription:  "",
@@ -307,5 +308,5 @@ func setupMiddlewares(handler http.Handler) http.Handler {
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json
 // document. So this is a good place to plug in a panic handling middleware, logging and metrics
 func setupGlobalMiddleware(handler http.Handler) http.Handler {
-	return middleware.Redoc(middleware.RedocOpts{}, handler)
+	return docui.Redoc(handler)
 }
