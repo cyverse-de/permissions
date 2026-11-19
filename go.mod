@@ -4,14 +4,14 @@ go 1.27
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/cyverse-de/configurate v0.0.0-20260305004742-e3d1c1150f1e
-	github.com/cyverse-de/dbutil v1.0.1
-	github.com/cyverse-de/go-mod/otelutils v0.0.6
-	github.com/cyverse-de/version v0.0.0-20200527190517-b40800dcc78b
+	github.com/cyverse-de/configurate v0.4.0
+	github.com/cyverse-de/dbutil v1.0.2
+	github.com/cyverse-de/go-mod/otelutils v0.0.7
+	github.com/cyverse-de/version v0.0.0-20261118185406-b85490505c2e
 	github.com/go-openapi/errors v0.22.9
 	github.com/go-openapi/loads v0.25.4
-	github.com/go-openapi/runtime v0.33.4
-	github.com/go-openapi/runtime/server-middleware v0.33.4
+	github.com/go-openapi/runtime v0.33.5
+	github.com/go-openapi/runtime/server-middleware v0.33.5
 	github.com/go-openapi/spec v1.0.1
 	github.com/go-openapi/strfmt v0.27.4
 	github.com/go-openapi/swag v0.29.2
@@ -23,7 +23,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
 	go.opentelemetry.io/otel v1.47.0
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 )
 
 require (
@@ -35,7 +35,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v1.0.2 // indirect
-	github.com/go-openapi/jsonpointer v1.0.2 // indirect
+	github.com/go-openapi/jsonpointer v1.0.3 // indirect
 	github.com/go-openapi/jsonreference v1.0.3 // indirect
 	github.com/go-openapi/swag/conv v0.29.2 // indirect
 	github.com/go-openapi/swag/fileutils v0.29.2 // indirect
@@ -49,7 +49,7 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.29.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.33.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.34.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
@@ -73,8 +73,8 @@ require (
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20261116203732-fd2c7689a808 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261116203732-fd2c7689a808 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20261118221215-c8830f628b3f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261118221215-c8830f628b3f // indirect
 	google.golang.org/grpc v1.85.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
